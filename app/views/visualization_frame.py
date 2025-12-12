@@ -7,6 +7,12 @@ from sklearn.cluster import KMeans, DBSCAN
 from scipy.cluster.hierarchy import dendrogram, linkage
 from scipy.spatial.distance import pdist
 import pandas as pd
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.tree import DecisionTreeClassifier, plot_tree
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.preprocessing import LabelEncoder
 
 
 class VisualizationFrame(tk.Frame):
@@ -22,7 +28,7 @@ class VisualizationFrame(tk.Frame):
         learning_type = self.controller.get_learning_type()
         self.supervised_mode = (learning_type == "supervised")
 
-        # Title
+        # title
         title_text = "Supervised Learning Visualization" if self.supervised_mode else "Algorithm Visualization"
         self.title_label = tk.Label(
             self,
@@ -130,7 +136,7 @@ class VisualizationFrame(tk.Frame):
 
         # Plot frame - single plot area
         self.plot_frame = tk.Frame(self.viz_frame, bg="white")
-        self.plot_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=5)
+        self.plot_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
         # Results section
         self.setup_results_section(content_frame)
@@ -231,7 +237,6 @@ class VisualizationFrame(tk.Frame):
         msg_label.grid(row=0, column=0, columnspan=4, pady=20)
 
     def create_parameter_widgets(self, params, algorithm_name, algorithm_type):
-        """Create parameter input widgets"""
         row = 0
         col = 0
 
@@ -269,7 +274,6 @@ class VisualizationFrame(tk.Frame):
             col += 1
 
     def create_parameter_widget(self, parent, param, algorithm_name, algorithm_type):
-        """Create specific parameter input widget"""
         if param == 'n_clusters':
             # Use optimal K for unsupervised algorithms
             optimal_k = self.controller.get_optimal_k() if hasattr(
@@ -302,10 +306,10 @@ class VisualizationFrame(tk.Frame):
                 entry.pack(pady=(0, 5))
                 return entry
 
-        elif param == 'train_test_ratio':
+        elif param == 'training perc':
             combo = ttk.Combobox(
                 parent,
-                values=["70/30", "75/25", "80/20"],
+                values=["80/20", "85/15", "90/10"],
                 state="readonly",
                 width=8,
                 font=("Arial", 9)
@@ -315,17 +319,16 @@ class VisualizationFrame(tk.Frame):
             return combo
 
         elif param == 'n_neighbors' and algorithm_name == 'KNN':
-            entry = tk.Entry(
+            combo = ttk.Combobox(
                 parent,
+                values=[str(i) for i in range(1, 11)],
+                state="readonly",
                 width=8,
-                font=("Arial", 9),
-                justify="center",
-                relief="sunken",
-                bd=1
+                font=("Arial", 9)
             )
-            entry.insert(0, "5")
-            entry.pack(pady=(0, 5))
-            return entry
+            combo.set("5")
+            combo.pack(pady=(0, 5))
+            return combo
 
         elif param == 'distance_metric':
             combo = ttk.Combobox(
@@ -404,14 +407,15 @@ class VisualizationFrame(tk.Frame):
             return entry
 
     def get_parameter_values(self):
-        """Get current parameter values from widgets"""
         values = {}
         for param, widget in self.parameter_widgets.items():
             if isinstance(widget, ttk.Combobox):
-                if param == 'train_test_ratio':
+                if param == 'training perc':
                     ratio_text = widget.get()
                     train_pct = int(ratio_text.split('/')[0])
                     values[param] = train_pct / 100.0
+                elif param == 'n_neighbors':
+                    values[param] = int(widget.get())
                 else:
                     values[param] = widget.get()
             elif isinstance(widget, tk.Entry):
@@ -459,20 +463,328 @@ class VisualizationFrame(tk.Frame):
 
     def apply_supervised_algorithm(self, algorithm_name, params):
         """Apply supervised learning algorithm"""
-        # This is a placeholder - implement actual supervised algorithms
-        self.results_text.insert(
-            tk.END, f"Supervised algorithm {algorithm_name} applied successfully!\n\n")
-        self.results_text.insert(tk.END, f"Parameters: {params}\n\n")
-        self.results_text.insert(tk.END, "Training completed.\n")
-        self.results_text.insert(tk.END, "Accuracy: 85.7%\n")
-        self.results_text.insert(tk.END, "Precision: 83.2%\n")
-        self.results_text.insert(tk.END, "Recall: 87.1%\n")
+        # Get dataset for supervised learning
+        dataset = self.controller.get_dataset()
+        if dataset is None:
+            self.show_error("No dataset loaded")
+            return
+
+        # Prepare data for supervised learning
+        if len(dataset.columns) < 2:
+            self.show_error(
+                "Dataset needs at least 2 columns (features + target)")
+            return
+
+        # Get features and target
+        # Assume last column is target
+        X = dataset.iloc[:, :-1]
+        y = dataset.iloc[:, -1]
+
+        # Select numeric features only
+        numeric_features = X.select_dtypes(include=[np.number])
+        if len(numeric_features.columns) == 0:
+            self.show_error("No numeric features found")
+            return
+
+        X_numeric = numeric_features.values
+
+        # Encode target if it's categorical
+        le = LabelEncoder()
+        y_encoded = le.fit_transform(y)
+
+        # Apply algorithm based on name
+        if algorithm_name == "KNN":
+            result = self.apply_knn_algorithm(X_numeric, y_encoded, params)
+            if result:
+                self.create_knn_plot(result)
+                self.display_supervised_results(result, params, le.classes_)
+
+        elif algorithm_name == "Naive Bayes":
+            result = self.apply_naive_bayes_algorithm(
+                X_numeric, y_encoded, params)
+            if result:
+                self.create_naive_bayes_plot(result)
+                self.display_supervised_results(result, params, le.classes_)
+
+        elif algorithm_name == "C4.5":
+            result = self.apply_c45_algorithm(
+                X_numeric, y_encoded, params, numeric_features.columns)
+            if result:
+                self.create_decision_tree_plot(
+                    result, numeric_features.columns, le.classes_)
+                self.display_supervised_results(result, params, le.classes_)
 
         # Enable next step
         self.next_btn.config(state=tk.NORMAL, bg="#24367E")
 
-        # Create a simple placeholder plot
-        self.create_supervised_plot(algorithm_name)
+    def apply_knn_algorithm(self, X, y, params):
+        """Apply KNN algorithm"""
+        try:
+            train_ratio = params.get('training perc', 0.8)
+            n_neighbors = params.get('n_neighbors', 5)
+
+            # Split data
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, train_size=train_ratio, random_state=42
+            )
+
+            # Apply KNN
+            knn = KNeighborsClassifier(n_neighbors=n_neighbors)
+            knn.fit(X_train, y_train)
+            y_pred = knn.predict(X_test)
+
+            # Calculate accuracy for different K values
+            k_range = range(1, 11)
+            accuracies = []
+            for k in k_range:
+                knn_temp = KNeighborsClassifier(n_neighbors=k)
+                knn_temp.fit(X_train, y_train)
+                y_pred_temp = knn_temp.predict(X_test)
+                accuracies.append(accuracy_score(y_test, y_pred_temp))
+
+            return {
+                'algorithm': 'KNN',
+                'model': knn,
+                'X_train': X_train,
+                'X_test': X_test,
+                'y_train': y_train,
+                'y_test': y_test,
+                'y_pred': y_pred,
+                'n_neighbors': n_neighbors,
+                'train_ratio': train_ratio,
+                'accuracy': accuracy_score(y_test, y_pred),
+                'k_accuracies': list(zip(k_range, accuracies)),
+                'confusion_matrix': confusion_matrix(y_test, y_pred),
+                'classification_report': classification_report(y_test, y_pred, output_dict=True)
+            }
+        except Exception as e:
+            self.show_error(f"Error in KNN: {str(e)}")
+            return None
+
+    def apply_naive_bayes_algorithm(self, X, y, params):
+        """Apply Naive Bayes algorithm"""
+        try:
+            train_ratio = params.get('training perc', 0.8)
+
+            # Split data
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, train_size=train_ratio, random_state=42
+            )
+
+            # Apply Naive Bayes
+            nb = GaussianNB()
+            nb.fit(X_train, y_train)
+            y_pred = nb.predict(X_test)
+
+            return {
+                'algorithm': 'Naive Bayes',
+                'model': nb,
+                'X_train': X_train,
+                'X_test': X_test,
+                'y_train': y_train,
+                'y_test': y_test,
+                'y_pred': y_pred,
+                'train_ratio': train_ratio,
+                'accuracy': accuracy_score(y_test, y_pred),
+                'confusion_matrix': confusion_matrix(y_test, y_pred),
+                'classification_report': classification_report(y_test, y_pred, output_dict=True)
+            }
+        except Exception as e:
+            self.show_error(f"Error in Naive Bayes: {str(e)}")
+            return None
+
+    def apply_c45_algorithm(self, X, y, params, feature_names):
+        """Apply C4.5 (Decision Tree) algorithm"""
+        try:
+            train_ratio = params.get('training perc', 0.8)
+
+            # Split data
+            X_train, X_test, y_train, y_test = train_test_split(
+                X, y, train_size=train_ratio, random_state=42
+            )
+
+            # Apply Decision Tree (C4.5 approximation)
+            dt = DecisionTreeClassifier(
+                criterion='entropy',  # C4.5 uses entropy
+                max_depth=6,
+                min_samples_split=2,
+                random_state=42
+            )
+            dt.fit(X_train, y_train)
+            y_pred = dt.predict(X_test)
+
+            return {
+                'algorithm': 'C4.5',
+                'model': dt,
+                'X_train': X_train,
+                'X_test': X_test,
+                'y_train': y_train,
+                'y_test': y_test,
+                'y_pred': y_pred,
+                'train_ratio': train_ratio,
+                'accuracy': accuracy_score(y_test, y_pred),
+                'confusion_matrix': confusion_matrix(y_test, y_pred),
+                'classification_report': classification_report(y_test, y_pred, output_dict=True),
+                'feature_names': feature_names
+            }
+        except Exception as e:
+            self.show_error(f"Error in C4.5: {str(e)}")
+            return None
+
+    def create_knn_plot(self, result):
+        # Clear previous plots
+        for widget in self.plot_frame.winfo_children():
+            widget.destroy()
+
+        fig, ax = plt.subplots(figsize=(3, 3))
+
+        k_values, accuracies = zip(*result['k_accuracies'])
+
+        # Plot K vs Accuracy
+        ax.plot(k_values, accuracies, 'bo-', linewidth=2, markersize=8)
+
+        # Highlight current K
+        current_k = result['n_neighbors']
+        current_acc = next(
+            acc for k, acc in result['k_accuracies'] if k == current_k)
+        ax.scatter(current_k, current_acc, color='red', s=150, zorder=5)
+        ax.annotate(f'Selected K={current_k}\nAcc={current_acc:.3f}',
+                    xy=(current_k, current_acc),
+                    xytext=(current_k + 1.5, current_acc + 0.02),
+                    arrowprops=dict(arrowstyle='->', color='red', lw=2),
+                    fontsize=10, color='red', fontweight='bold')
+
+        ax.set_xlabel('Number of neighbors (K)', fontsize=12)
+        ax.set_ylabel('Accuracy', fontsize=12)
+        ax.grid(True, alpha=0.3)
+        ax.set_xlim(0.5, 10.5)
+        ax.set_ylim(min(accuracies) - 0.05, max(accuracies) + 0.05)
+
+        plt.tight_layout()
+
+        canvas = FigureCanvasTkAgg(fig, self.plot_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+    def create_naive_bayes_plot(self, result):
+        """Create performance metrics plot for Naive Bayes"""
+        # Clear previous plots
+        for widget in self.plot_frame.winfo_children():
+            widget.destroy()
+
+        fig, ax = plt.subplots(figsize=(3, 2))
+
+        # Get metrics from classification report
+        report = result['classification_report']
+
+        # Calculate weighted average metrics
+        accuracy = result['accuracy']
+        precision = report['weighted avg']['precision']
+        recall = report['weighted avg']['recall']
+        f1_score = report['weighted avg']['f1-score']
+
+        metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score']
+        values = [accuracy, precision, recall, f1_score]
+        colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#d62728']
+
+        bars = ax.bar(metrics, values, color=colors,
+                      alpha=0.7, edgecolor='black')
+        ax.set_ylim(0, 1)
+        ax.set_ylabel('Score', fontsize=12)
+
+        # Add value labels on bars
+        for bar, value in zip(bars, values):
+            ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01,
+                    f'{value:.3f}', ha='center', va='bottom', fontweight='bold')
+
+        ax.grid(True, alpha=0.3, axis='y')
+        plt.tight_layout()
+
+        canvas = FigureCanvasTkAgg(fig, self.plot_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+    def create_decision_tree_plot(self, result, feature_names, class_names):
+        """Create decision tree visualization for C4.5"""
+        # Clear previous plots
+        for widget in self.plot_frame.winfo_children():
+            widget.destroy()
+
+        fig, ax = plt.subplots(figsize=(4, 5))
+
+        plot_tree(result['model'],
+                  ax=ax,
+                  feature_names=feature_names,
+                  class_names=[str(c) for c in class_names],
+                  filled=True,
+                  rounded=True,
+                  fontsize=8,
+                  max_depth=3,
+                  node_ids=False,
+                  impurity=False,
+                  proportion=False,
+                  label='all')
+
+        plt.tight_layout()
+
+        canvas = FigureCanvasTkAgg(fig, self.plot_frame)
+        canvas.draw()
+        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+
+    def display_supervised_results(self, result, params, class_names):
+        """Display results for supervised algorithms"""
+        self.results_text.delete(1.0, tk.END)
+
+        algorithm = result['algorithm']
+        accuracy = result['accuracy']
+        train_ratio = result['train_ratio']
+
+        # Header
+        self.results_text.insert(tk.END, f"{algorithm} Results\n")
+        self.results_text.insert(tk.END, "=" * 20 + "\n\n")
+
+        # Basic info
+        self.results_text.insert(tk.END, f"Algorithm: {algorithm}\n")
+        self.results_text.insert(tk.END, f"Training: {train_ratio*100:.0f}%\n")
+        self.results_text.insert(tk.END, f"Test: {(1-train_ratio)*100:.0f}%\n")
+
+        # Algorithm-specific parameters
+        if algorithm == "KNN":
+            self.results_text.insert(
+                tk.END, f"K neighbors: {result['n_neighbors']}\n\n")
+
+        self.results_text.insert(
+            tk.END, f"Test samples: {len(result['y_test'])}\n")
+        self.results_text.insert(
+            tk.END, f"Overall Accuracy: {accuracy:.4f}\n\n")
+
+        # Per-class metrics
+        report = result['classification_report']
+        self.results_text.insert(tk.END, "Per-Class Metrics:\n")
+        self.results_text.insert(tk.END, "-" * 18 + "\n")
+
+        for i, class_name in enumerate(class_names):
+            class_key = str(i)
+            if class_key in report:
+                metrics = report[class_key]
+                self.results_text.insert(tk.END, f"Class '{class_name}':\n")
+                self.results_text.insert(
+                    tk.END, f"  Precision: {metrics['precision']:.3f}\n")
+                self.results_text.insert(
+                    tk.END, f"  Recall: {metrics['recall']:.3f}\n")
+                self.results_text.insert(
+                    tk.END, f"  F1-score: {metrics['f1-score']:.3f}\n")
+
+        # Overall metrics
+        self.results_text.insert(tk.END, "Overall Metrics:\n")
+        self.results_text.insert(tk.END, "-" * 14 + "\n")
+        weighted_avg = report['weighted avg']
+        self.results_text.insert(
+            tk.END, f"Precision: {weighted_avg['precision']:.3f}\n")
+        self.results_text.insert(
+            tk.END, f"Recall: {weighted_avg['recall']:.3f}\n")
+        self.results_text.insert(
+            tk.END, f"F1-score: {weighted_avg['f1-score']:.3f}\n\n")
 
     def apply_unsupervised_algorithm(self, algorithm_name, algorithm_type, params):
         """Apply unsupervised learning algorithm"""
@@ -641,11 +953,11 @@ class VisualizationFrame(tk.Frame):
 
         # Use actual column names if provided, otherwise use default labels
         if column_names is not None and len(column_names) >= 2:
-         ax.set_xlabel(column_names[0])
-         ax.set_ylabel(column_names[1])
+            ax.set_xlabel(column_names[0])
+            ax.set_ylabel(column_names[1])
         else:
-         ax.set_xlabel('Feature 1')
-         ax.set_ylabel('Feature 2')
+            ax.set_xlabel('Feature 1')
+            ax.set_ylabel('Feature 2')
 
         ax.legend()
         ax.grid(True, alpha=0.3)
@@ -809,7 +1121,6 @@ class VisualizationFrame(tk.Frame):
         self.event_generate("<<NextStep>>")
 
     def reset_frame(self):
-        """Reset frame to initial state"""
         self.results_text.delete(1.0, tk.END)
         self.results_text.insert(
             tk.END, "Results will appear here after applying the algorithm...\n\n")

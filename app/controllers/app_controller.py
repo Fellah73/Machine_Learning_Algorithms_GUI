@@ -67,10 +67,6 @@ class AppController:
         """Check if can proceed to next step"""
         return self.app_state.has_dataset()
 
-    def get_dataset(self):
-        """Get loaded dataset"""
-        return self.app_state.get_dataset()
-
     def increment_step(self):
         """Move to next step"""
         self.app_state.increment_step()
@@ -348,5 +344,5 @@ class AppController:
      return self.app_state.get_optimal_k()
 
     def get_dataset(self):
-     """Get the loaded dataset"""
+     """Get loaded dataset"""
      return self.app_state.get_dataset()

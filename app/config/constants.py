@@ -79,7 +79,7 @@ algorithms = {
             "description": "Algorithms that defer computation until a query is made. No explicit training phase.",
             "algorithms": {
                 "KNN": {
-                    "parameters": ["k_neighbors", "training perc"]
+                    "parameters": ["n_neighbors", "training perc"]
                 }
             }
         },
