@@ -3,13 +3,14 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 
 from app.views.navbar_menu import NavbarMenu
-from app.views.main_frame import MainFrame
+from app.views.uploadDataSet_frame import UploadDataSetFrame
 from app.views.preprocessing_frame import PreprocessingFrame
 from app.views.learningType_frame import LearningTypeFrame
 from app.controllers.app_controller import AppController
 from app.config.constants import step_mapping
 from app.views.clustering_metrics_frame import ClusteringMetricsFrame
 from app.views.algorithms_frame import AlgorithmsFrame
+from app.views.visualization_frame import VisualizationFrame
 
 class MainView(tk.Tk):
     
@@ -50,7 +51,7 @@ class MainView(tk.Tk):
     def _create_frames(self):
         """Create all application frames"""
         # Upload frame
-        self.frames['upload'] = MainFrame(self.container, self.controller)
+        self.frames['upload'] = UploadDataSetFrame(self.container, self.controller)
         self.frames['upload'].bind("<<NextStep>>", self.on_next_step)
         
         # Preprocessing frame
@@ -92,6 +93,14 @@ class MainView(tk.Tk):
           self.frames['algorithms'].bind("<<PreviousStep>>", self.on_algorithms_back)
           self.frames['algorithms'].place(relx=0, rely=0, relwidth=1, relheight=1)
 
+        # Add visualization frame creation
+        if frame_name == 'visualization' and 'visualization' not in self.frames:
+          self.frames['visualization'] = VisualizationFrame(self.container, self.controller)
+          self.frames['visualization'].bind("<<NextStep>>", self.on_visualization_next)
+          self.frames['visualization'].bind("<<PreviousStep>>", self.on_visualization_back)
+          self.frames['visualization'].place(relx=0, rely=0, relwidth=1, relheight=1)
+
+        
         if frame_name and frame_name in self.frames:
             self.frames[frame_name].lift()
 
@@ -149,7 +158,7 @@ class MainView(tk.Tk):
                 self.controller.set_current_step(3) 
                 
             self.show_current_step()
-        else:
+        else:  
             messagebox.showwarning("Warning", "Please select a learning type first.")
 
     def on_clustering_metrics_next(self, event=None):
@@ -165,12 +174,24 @@ class MainView(tk.Tk):
     def on_algorithms_next(self, event=None):
         """Handler for next step from algorithms"""
         if self.controller.is_algorithm_selected():
+            print("algorithm selected", self.controller.get_selected_algorithm())
             self.controller.increment_step()
             self.show_current_step()
         else:
+            print("no algorithm selected", self.controller.is_algorithm_selected())
             messagebox.showwarning("Warning", "Please select an algorithm first.")
 
     def on_algorithms_back(self, event=None):
         """Handler for back step from algorithms"""
         self.controller.decrement_step()
         self.show_current_step()
+    
+    def on_visualization_next(self, event=None):
+     """Handler for next step from visualization"""
+     self.controller.increment_step()
+     self.show_current_step()
+
+    def on_visualization_back(self, event=None):
+     """Handler for back step from visualization"""
+     self.controller.decrement_step()
+     self.show_current_step()

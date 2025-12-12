@@ -1,8 +1,6 @@
 import tkinter as tk
 from tkinter import ttk, scrolledtext
-from PIL import Image, ImageTk
-import requests
-from io import BytesIO
+from app.utils.asset_manager import asset_manager
 
 
 class AlgorithmsFrame(tk.Frame):
@@ -14,8 +12,7 @@ class AlgorithmsFrame(tk.Frame):
         self.algorithm_buttons = {}
         self.setup_ui()
     
-    def setup_ui(self):
-        # Title label
+    def setup_ui(self): 
         title_label = tk.Label(
             self,
             text="Algorithm Selection",
@@ -34,10 +31,9 @@ class AlgorithmsFrame(tk.Frame):
         elif learning_type == "supervised":
             self.setup_supervised_algorithms()
         else : 
-            print(f"WARNING: Unknown learning type '{learning_type}'")   
+            print(f"Unknown learning type '{learning_type}'")   
 
     def setup_unsupervised_algorithms(self):
-        """Setup unsupervised learning algorithms interface"""
         # Algorithm type buttons frame
         type_buttons_frame = tk.Frame(self, bg="#f0f0f0")
         type_buttons_frame.pack(pady=10, fill=tk.X, padx=30)
@@ -155,7 +151,6 @@ class AlgorithmsFrame(tk.Frame):
         self.show_algorithm_family("Lazy Learning")  # Default selection
 
     def setup_content_area(self):
-        """Setup main content area for algorithm display"""
         # Separator
         separator = tk.Frame(self, height=2, bg="#7b9fc2")
         separator.pack(fill=tk.X, padx=30, pady=15)
@@ -200,7 +195,7 @@ class AlgorithmsFrame(tk.Frame):
 
         # Image display frame
         self.image_display_frame = tk.Frame(
-            self.right_frame, bg="white", relief="sunken", bd=1, width=200, height=150
+            self.right_frame, bg="white", relief="sunken", bd=1, width=240, height=200
         )
         self.image_display_frame.pack(pady=10, padx=10)
         self.image_display_frame.pack_propagate(False)
@@ -219,7 +214,6 @@ class AlgorithmsFrame(tk.Frame):
         self.setup_navigation_buttons()
 
     def setup_navigation_buttons(self):
-        """Setup navigation buttons"""
         nav_frame = tk.Frame(self.right_frame, bg="#f8f9fa")
         nav_frame.pack(pady=20)
 
@@ -240,7 +234,6 @@ class AlgorithmsFrame(tk.Frame):
         self.next_button.pack(pady=5)
 
     def show_algorithm_family(self, family_type):
-     """Display algorithms for selected family"""
      self.current_algorithm_type = family_type
      self.selected_algorithm = None
 
@@ -291,7 +284,6 @@ class AlgorithmsFrame(tk.Frame):
      self.next_button.config(state=tk.DISABLED, bg="#374451")
     
     def display_family_info(self, family_type):
-        """Display information about algorithm family"""
         # Get algorithm families data
         algorithms_data = self.controller.get_algorithms_data()
         
@@ -317,37 +309,37 @@ class AlgorithmsFrame(tk.Frame):
         # Load and display image
         self.load_family_image(family_info.get('image', ''))
 
-    def load_family_image(self, image_url):
-        """Load and display family image"""
-        if not image_url:
+    def load_family_image(self, image_url=""):
+     try:
+        learning_type = self.controller.get_learning_type()
+        family_type = self.current_algorithm_type
+         
+        photo = asset_manager.get_algorithm_image(learning_type, family_type)
+        
+        if photo:
+            self.image_label.config(image=photo, text="")
+            self.image_label.image = photo  # Keep reference
+            
+        else:
+            # placeholder text
             self.image_label.config(
                 image="",
-                text=f"{self.current_algorithm_type}\nImage",
+                text=f"{family_type}\nImage",
                 font=("Arial", 9),
                 fg="#666"
             )
-            return
+    
 
-        try:
-            response = requests.get(image_url, timeout=5)
-            response.raise_for_status()
-            
-            image = Image.open(BytesIO(response.content))
-            image = image.resize((180, 140), Image.Resampling.LANCZOS)
-            photo = ImageTk.PhotoImage(image)
-            
-            self.image_label.config(image=photo, text="")
-            self.image_label.image = photo  # Keep reference
-        except Exception as e:
-            self.image_label.config(
-                image="",
-                text=f"{self.current_algorithm_type}\nImage\nLoading Error",
-                font=("Arial", 9),
-                fg="#ff4444"
-            )
+     except Exception as e:
+        print(f"Error in load_family_image for {self.current_algorithm_type}: {e}")
+        self.image_label.config(
+            image="",
+            text=f"{self.current_algorithm_type}\nImage\nError",
+            font=("Arial", 9),
+            fg="#ff4444"
+        )
 
     def create_algorithm_buttons(self, family_type):
-        """Create buttons for algorithms in family"""
         # Clear existing buttons
         for widget in self.algorithms_list_frame.winfo_children():
             widget.destroy()
@@ -402,8 +394,8 @@ class AlgorithmsFrame(tk.Frame):
                 algo_frame,
                 text=params_text,
                 bg="#f9f9f9",
-                fg="#666",
-                font=("Arial", 8),
+                fg="black",
+                font=("Arial", 13),
                 wraplength=120
             )
             params_label.grid(row=1, column=0, pady=2, sticky="ew")

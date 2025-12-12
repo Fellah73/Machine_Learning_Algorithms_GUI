@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import ttk
 
 
-class MainFrame(ttk.Frame):
+class UploadDataSetFrame(ttk.Frame):
     """Main upload frame for dataset selection"""
 
     def __init__(self, parent, controller):

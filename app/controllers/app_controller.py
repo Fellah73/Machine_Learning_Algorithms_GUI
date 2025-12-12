@@ -251,7 +251,7 @@ class AppController:
 
     def is_algorithm_selected(self):
         """Check if algorithm is selected"""
-        return self.selected_algorithm is not None
+        return self.app_state.get_selected_algorithm() is not None
 
     def train_supervised_algorithm(self, algorithm_name, parameters=None):
         """Train selected supervised algorithm"""
@@ -329,3 +329,24 @@ class AppController:
             
         except Exception as e:
             print(f"Error during cleanup: {e}")
+            
+    def get_selected_algorithm(self):
+     """Get the selected algorithm name"""
+     return self.app_state.get_selected_algorithm()
+
+    def get_algorithm_type(self):
+     """Get the selected algorithm type"""
+     return self.app_state.get_algorithm_type()
+
+    def set_selected_algorithm(self, algorithm_name, algorithm_type):
+      """Set the selected algorithm and type"""
+      self.app_state.set_selected_algorithm(algorithm_name)
+      self.app_state.set_algorithm_type(algorithm_type)
+ 
+    def get_optimal_k(self):
+     """Get the optimal K from clustering metrics"""
+     return self.app_state.get_optimal_k()
+
+    def get_dataset(self):
+     """Get the loaded dataset"""
+     return self.app_state.get_dataset()

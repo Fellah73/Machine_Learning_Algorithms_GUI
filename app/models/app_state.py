@@ -137,3 +137,27 @@ class AppState:
 
     def set_learning_type(self, learning_type):
      self.selected_learning_type = learning_type
+     
+    def get_selected_algorithm(self):
+     """Get the selected algorithm"""
+     return self.selected_algorithm
+
+    def set_selected_algorithm(self, algorithm):
+     """Set the selected algorithm"""
+     self.selected_algorithm = algorithm
+
+    def get_algorithm_type(self):
+     """Get the algorithm type"""
+     return self.current_algorithm_type
+
+    def set_algorithm_type(self, algorithm_type):
+     """Set the algorithm type"""
+     self.current_algorithm_type = algorithm_type
+
+    def get_optimal_k(self):
+     """Get the optimal K value"""
+     return self.optimal_k
+
+    def set_optimal_k(self, optimal_k):
+     """Set the optimal K value"""
+     self.optimal_k = optimal_k
