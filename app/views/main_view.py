@@ -12,6 +12,7 @@ from app.views.clustering_metrics_frame import ClusteringMetricsFrame
 from app.views.algorithms_frame import AlgorithmsFrame
 from app.views.visualization_frame import VisualizationFrame
 from app.views.unsupervised_comparaison_frame import UnsupervisedComparisonFrame
+from app.views.supervised_comparison_frame import SupervisedComparisonFrame
 
 
 class MainView(tk.Tk):
@@ -121,12 +122,21 @@ class MainView(tk.Tk):
                 relx=0, rely=0, relwidth=1, relheight=1)
 
         # Comparison frame
-        if frame_name == 'comparison' and 'comparison' not in self.frames:
-            self.frames['comparison'] = UnsupervisedComparisonFrame(
+        if frame_name == 'unsup_comparison' and 'unsup_comparison' not in self.frames:
+            self.frames['unsup_comparison'] = UnsupervisedComparisonFrame(
                 self.container, self.controller)
-            self.frames['comparison'].bind(
+            self.frames['unsup_comparison'].bind(
                 "<<PreviousStep>>", self.on_previous_step)
-            self.frames['comparison'].place(
+            self.frames['unsup_comparison'].place(
+                relx=0, rely=0, relwidth=1, relheight=1)
+            
+        # Comparison frame
+        if frame_name == 'sup_comparison' and 'sup_comparison' not in self.frames:
+            self.frames['sup_comparison'] = SupervisedComparisonFrame(
+                self.container, self.controller)
+            self.frames['sup_comparison'].bind(
+                "<<PreviousStep>>", self.on_previous_step)
+            self.frames['sup_comparison'].place(
                 relx=0, rely=0, relwidth=1, relheight=1)
 
         if frame_name and frame_name in self.frames:
@@ -217,8 +227,7 @@ class MainView(tk.Tk):
         self.show_current_step()
 
     def on_visualization_next(self, event=None):
-     """Handler for next step from visualization"""
-     
+     """Handler for next step from visualization"""    
      try:
         self.controller.increment_step()
         self.show_current_step()
@@ -231,5 +240,4 @@ class MainView(tk.Tk):
         self.show_current_step()
 
     def on_comparison_next(self, event=None):
-        # This would be the final step for unsupervised
         messagebox.showinfo("Info", "Comparison completed successfully!")

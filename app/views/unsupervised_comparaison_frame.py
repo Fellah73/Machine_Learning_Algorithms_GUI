@@ -24,7 +24,7 @@ class UnsupervisedComparisonFrame(tk.Frame):
         # Title
         title_label = tk.Label(
             self,
-            text="Algorithm Comparison Interface",
+            text="Unsupervised algorithms comparison Interface",
             bg="#f0f0f0",
             fg="#24367E",
             font=("Arial", 13, "bold")
@@ -84,10 +84,6 @@ class UnsupervisedComparisonFrame(tk.Frame):
         # Right section - all algorithms comparison
         right_section = tk.Frame(main_frame, bd=2)
         right_section.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
-
-        right_title_label = tk.Label(right_section, text="All Algorithms Comparison",
-                                     bg="#f8f9fa", fg="#24367E", font=("Arial", 11, "bold"))
-        right_title_label.pack(pady=3)
 
         # Right metrics table frame
         right_metrics_frame = tk.Frame(
@@ -556,7 +552,6 @@ class UnsupervisedComparisonFrame(tk.Frame):
                         ax.scatter(medoids[:, 0], np.zeros(
                             len(medoids)), c='red', marker='s', s=100, linewidths=2)
 
-            ax.set_title(algorithm_name, fontsize=8)
             ax.set_xticks([])
             ax.set_yticks([])
 
@@ -617,7 +612,6 @@ class UnsupervisedComparisonFrame(tk.Frame):
                 bars[selected_idx].set_edgecolor('red')
                 bars[selected_idx].set_linewidth(3)
 
-            ax.set_title('Inertia Comparison', fontsize=11, fontweight='bold')
             ax.grid(True, alpha=0.3, axis='y')
 
         plt.tight_layout()

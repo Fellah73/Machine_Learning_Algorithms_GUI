@@ -27,7 +27,7 @@ step_mapping = {
         3: "clustering_metrics",
         4: "algorithms",
         5: "visualization",
-        6: "comparison"
+        6: "unsup_comparison"
     },
     "supervised": {
         0: "upload",
@@ -35,7 +35,7 @@ step_mapping = {
         2: "learning_type",
         3: "algorithms",  
         4: "visualization",
-        5: "comparison"
+        5: "sup_comparison"
     }
 }
 
