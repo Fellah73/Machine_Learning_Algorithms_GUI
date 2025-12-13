@@ -13,12 +13,15 @@ from sklearn.tree import DecisionTreeClassifier, plot_tree
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
 from sklearn.preprocessing import LabelEncoder
+from app.models.dataSet_loader import DataSetLoader
+from scipy.spatial.distance import cdist
 
 
 class VisualizationFrame(tk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent, bg="#f0f0f0")
         self.controller = controller
+        self.dataset_loader = DataSetLoader()
         self.supervised_mode = False
         self.parameter_widgets = {}
         self.setup_ui()
@@ -462,13 +465,13 @@ class VisualizationFrame(tk.Frame):
             self.show_error(f"Error applying algorithm: {str(e)}")
 
     def apply_supervised_algorithm(self, algorithm_name, params):
-        """Apply supervised learning algorithm"""
         # Get dataset for supervised learning
-        dataset = self.controller.get_dataset()
+        dataset = self.controller.dataset_loader.data
+        
         if dataset is None:
             self.show_error("No dataset loaded")
             return
-
+        
         # Prepare data for supervised learning
         if len(dataset.columns) < 2:
             self.show_error(
@@ -522,7 +525,8 @@ class VisualizationFrame(tk.Frame):
         try:
             train_ratio = params.get('training perc', 0.8)
             n_neighbors = params.get('n_neighbors', 5)
-
+            
+            
             # Split data
             X_train, X_test, y_train, y_test = train_test_split(
                 X, y, train_size=train_ratio, random_state=42
@@ -787,14 +791,12 @@ class VisualizationFrame(tk.Frame):
             tk.END, f"F1-score: {weighted_avg['f1-score']:.3f}\n\n")
 
     def apply_unsupervised_algorithm(self, algorithm_name, algorithm_type, params):
-        """Apply unsupervised learning algorithm"""
-        # Get dataset for clustering
-        dataset = self.controller.get_dataset()
+        
+        dataset = self.controller.dataset_loader.data
         if dataset is None:
             self.show_error("No dataset loaded")
-            return
-
-        # Prepare data (select numeric columns, excluding target if exists)
+            print("No dataset loaded")
+            
         if len(dataset.columns) > 1:
             # Use first few numeric columns
             numeric_cols = dataset.select_dtypes(include=[np.number]).columns
@@ -836,15 +838,95 @@ class VisualizationFrame(tk.Frame):
         # Enable next step
         self.next_btn.config(state=tk.NORMAL, bg="#24367E")
 
+    def kmedoids_clustering(self ,data, n_clusters, distance_metric, max_iter):
+     try:
+        np.random.seed(42)  
+        
+        n_samples = data.shape[0]
+        
+        metric_mapping = {
+            'euclidean': 'euclidean',
+            'manhattan': 'cityblock'
+        }
+        
+        metric = metric_mapping.get(distance_metric, 'euclidean')
+        
+        medoid_indices = np.random.choice(n_samples, n_clusters, replace=False)
+        medoids = data[medoid_indices]
+        
+        for iteration in range(max_iter):
+            distances = cdist(data, medoids, metric=metric)
+            labels = np.argmin(distances, axis=1)
+            
+            new_medoid_indices = []
+            cost_improved = False
+            
+            for cluster_id in range(n_clusters):
+                cluster_points = data[labels == cluster_id]
+                cluster_indices = np.where(labels == cluster_id)[0]
+                
+                if len(cluster_points) == 0:
+                    new_medoid_indices.append(medoid_indices[cluster_id])
+                    continue
+                
+                current_medoid_idx = medoid_indices[cluster_id]
+                current_cost = np.sum(cdist([data[current_medoid_idx]], cluster_points, metric=metric))
+                
+                best_medoid_idx = current_medoid_idx
+                best_cost = current_cost
+                
+                for point_idx in cluster_indices:
+                    cost = np.sum(cdist([data[point_idx]], cluster_points, metric=metric))
+                    if cost < best_cost:
+                        best_cost = cost
+                        best_medoid_idx = point_idx
+                        cost_improved = True
+                
+                new_medoid_indices.append(best_medoid_idx)
+            
+            medoid_indices = np.array(new_medoid_indices)
+            new_medoids = data[medoid_indices]
+            
+            if not cost_improved or np.array_equal(medoids, new_medoids):
+                break
+                
+            medoids = new_medoids
+        
+        distances = cdist(data, medoids, metric=metric)
+        final_labels = np.argmin(distances, axis=1)
+        
+        total_inertia = 0
+        for i, label in enumerate(final_labels):
+            total_inertia += distances[i, label]
+        
+        return {
+            'labels': final_labels,
+            'medoids': medoids,
+            'medoid_indices': medoid_indices,
+            'n_clusters': n_clusters,
+            'algorithm': 'K-Medoids',
+            'distance_metric': distance_metric,
+            'max_iter': max_iter,
+            'n_points': len(data),
+            'inertia': total_inertia,
+            'iterations_run': iteration + 1
+        }
+        
+     except Exception as e:
+        return {'error': str(e)}
+
     def apply_partitioning_algorithm(self, algorithm_name, data, params):
-        """Apply partitioning algorithms (K-Means, K-Medoids)"""
+        """K-Means, K-Medoids"""
         try:
             n_clusters = params.get('n_clusters', 3)
             max_iter = params.get('max_iter', 300)
-
+            distance_metric = params.get('distance_metric', 'euclidean')
+            
             if algorithm_name == "K-Means":
                 kmeans = KMeans(n_clusters=n_clusters,
-                                max_iter=max_iter, random_state=42, n_init=10)
+                                max_iter=max_iter, 
+                                random_state=42, 
+                                n_init=10)
                 labels = kmeans.fit_predict(data)
                 return {
                     'labels': labels,
@@ -853,26 +935,36 @@ class VisualizationFrame(tk.Frame):
                     'n_clusters': n_clusters,
                     'inertia': kmeans.inertia_
                 }
+                
             elif algorithm_name == "K-Medoids":
-                kmeans = KMeans(n_clusters=n_clusters,
-                                max_iter=max_iter, random_state=42)
-                labels = kmeans.fit_predict(data)
+                result = self.kmedoids_clustering(data, n_clusters, distance_metric, max_iter)
+                
+                # Vérifier s'il y a une erreur
+                if 'error' in result:
+                    self.show_error(f"K-Medoids error: {result['error']}")
+                    return None
+                
                 return {
-                    'labels': labels,
-                    'centers': kmeans.cluster_centers_,
+                    'labels': result['labels'],
+                    'centers': result['medoids'],  # Medoids comme centres
                     'algorithm': algorithm_name,
                     'n_clusters': n_clusters,
-                    'inertia': kmeans.inertia_
+                    'inertia': result['inertia'],
+                    'medoids': result['medoids'],
+                    'medoid_indices': result['medoid_indices'],
+                    'iterations_run': result['iterations_run']
                 }
+                
         except Exception as e:
             self.show_error(f"Error in {algorithm_name}: {str(e)}")
+            print(f"Full error details: {e}")
             return None
 
     def apply_hierarchical_algorithm(self, algorithm_name, data, params):
-        """Apply hierarchical algorithms (AGNES, DIANA)"""
+        """AGNES, DIANA"""
         try:
-            distance_metric = params.get('distance_metric', 'euclidean')
-            linkage_method = params.get('linkage', 'single')
+            distance_metric = params.get('distance_metric','euclidean')
+            linkage_method = params.get('linkage','single')
 
             # Calculate distances and linkage
             if distance_metric == 'manhattan':
@@ -893,7 +985,7 @@ class VisualizationFrame(tk.Frame):
             return None
 
     def apply_density_algorithm(self, algorithm_name, data, params):
-        """Apply density-based algorithms (DBSCAN)"""
+        """DBSCAN"""
         try:
             eps = params.get('eps', 0.5)
             min_samples = params.get('min_samples', 5)
@@ -949,7 +1041,7 @@ class VisualizationFrame(tk.Frame):
         if centers is not None:
             ax.scatter(centers[:, 0], centers[:, 1],
                        c='red', marker='X', s=200,
-                       linewidths=3, label='Centers')
+                       linewidths=3, label='Centroids')
 
         # Use actual column names if provided, otherwise use default labels
         if column_names is not None and len(column_names) >= 2:
@@ -999,26 +1091,28 @@ class VisualizationFrame(tk.Frame):
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
     def display_partitioning_results(self, result, params):
-        """Display results for partitioning algorithms"""
-        self.results_text.insert(tk.END, f"{result['algorithm']} Results\n")
-        self.results_text.insert(tk.END, "=" * 20 + "\n\n")
-        self.results_text.insert(tk.END, f"Algorithm: {result['algorithm']}\n")
-        self.results_text.insert(tk.END, f"Clusters: {result['n_clusters']}\n")
-        if 'inertia' in result:
-            self.results_text.insert(
-                tk.END, f"Inertia: {result['inertia']:.2f}\n")
-        self.results_text.insert(
-            tk.END, f"Max iterations: {params.get('max_iter', 300)}\n")
+     """Display results for partitioning algorithms"""
+     self.results_text.insert(tk.END, f"{result['algorithm']} Results\n")
+     self.results_text.insert(tk.END, "=" * 20 + "\n\n")
+     self.results_text.insert(tk.END, f"Algorithm: {result['algorithm']}\n")
+     self.results_text.insert(tk.END, f"Clusters: {result['n_clusters']}\n")
+    
+     if result['algorithm'] == 'K-Medoids':
+        self.results_text.insert(tk.END, f"Distance metric: {params.get('distance_metric', 'euclidean')}\n")
+        
+     if 'inertia' in result:
+        self.results_text.insert(tk.END, f"Inertia: {result['inertia']:.2f}\n")
+    
+     self.results_text.insert(tk.END, f"Max iterations: {params.get('max_iter', 300)}\n")
 
-        # Add cluster distribution
-        labels = result['labels']
-        unique_labels, counts = np.unique(labels, return_counts=True)
-        self.results_text.insert(tk.END, "\nCluster Distribution:\n")
-        self.results_text.insert(tk.END, "-" * 18 + "\n")
-        for label, count in zip(unique_labels, counts):
-            self.results_text.insert(
-                tk.END, f"Cluster {label}: {count} points\n")
-
+     # Add cluster distribution
+     labels = result['labels']
+     unique_labels, counts = np.unique(labels, return_counts=True)
+     self.results_text.insert(tk.END, "\nCluster Distribution:\n")
+     self.results_text.insert(tk.END, "-" * 18 + "\n")
+     for label, count in zip(unique_labels, counts):
+        self.results_text.insert(tk.END, f"Cluster {label}: {count} points\n")
+    
     def display_hierarchical_results(self, result, params):
         self.results_text.insert(tk.END, f"{result['algorithm']} Results\n")
         self.results_text.insert(tk.END, "=" * 20 + "\n\n")

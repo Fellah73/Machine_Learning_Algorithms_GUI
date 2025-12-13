@@ -193,7 +193,7 @@ class AppController:
                 'message': 'No dataset loaded. Please upload a CSV file first.'
             }
 
-        data = self.dataset_loader.get_data()
+        data = self.dataset_loader.get_data()         
         
         # Select only numeric columns for clustering
         last_column = data.columns[-1]
@@ -345,4 +345,4 @@ class AppController:
 
     def get_dataset(self):
      """Get loaded dataset"""
-     return self.app_state.get_dataset()
+     return self.dataset_loader.get_data()
