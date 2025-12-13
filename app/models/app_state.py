@@ -53,7 +53,7 @@ class AppState:
 
     def increment_step(self):
         """Move to next step"""
-        if self.current_step < 5:  # Max 6 steps (0-5)
+        if self.current_step <= 5:  # Max 6 steps (0-5)
             self.current_step += 1
 
     def decrement_step(self):
