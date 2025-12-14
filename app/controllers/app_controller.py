@@ -26,16 +26,9 @@ class AppController:
         self.algorithm_parameters = None
         
     def set_view(self, view):
-        """Set the associated view"""
         self.view = view
 
     def handle_file_upload(self) -> Optional[dict]:
-        """
-        Handle file upload process
-
-        Returns:
-            Dict with upload results or None if cancelled
-        """
         # Open file selection dialog
         file_path = filedialog.askopenfilename(
             title="Select CSV File",
@@ -65,27 +58,22 @@ class AppController:
         return result
 
     def can_proceed_to_next_step(self) -> bool:
-        """Check if can proceed to next step"""
         return self.app_state.has_dataset()
 
     def increment_step(self):     
-        """Move to next step"""
         self.app_state.increment_step()
         if self.view:
             self.view.show_current_step()
 
     def decrement_step(self):
-        """Move to previous step"""
         self.app_state.decrement_step()
         if self.view:
             self.view.show_current_step()
 
     def get_current_step(self) -> int:
-        """Get current step index"""
         return self.app_state.current_step
 
     def analyze_missing_values(self) -> Dict[str, Any]:
-        """Analyze and fill missing values"""
         if not self.dataset_loader.has_data():
             return {
                 'error': True,
@@ -105,7 +93,6 @@ class AppController:
         return result
 
     def analyze_outliers(self) -> Dict[str, Any]:
-        """Detect outliers in the dataset"""
         if not self.dataset_loader.has_data():
             return {
                 'error': True,
@@ -122,7 +109,6 @@ class AppController:
         return result
 
     def normalize_data(self) -> Dict[str, Any]:
-        """Normalize the dataset"""
         if not self.dataset_loader.has_data():
             return {
                 'error': True,
@@ -142,11 +128,9 @@ class AppController:
         return result
 
     def get_preprocessing_results(self) -> Dict[str, Any]:
-        """Get all preprocessing results"""
         return self.preprocessing_results
 
     def is_preprocessing_complete(self) -> bool:
-        """Check if all preprocessing steps are completed"""
         return (
             self.app_state.preprocessing_steps.get('missing_values', False) and
             self.app_state.preprocessing_steps.get('outliers', False) and
@@ -154,7 +138,6 @@ class AppController:
         )
 
     def set_learning_type(self, learning_type: str):
-        """Set the selected learning type and update navigation"""
         self.learning_type = learning_type
         self.app_state.selected_learning_type = learning_type
 
@@ -163,18 +146,14 @@ class AppController:
             self.view.update_navigation_for_learning_type(learning_type)
 
     def get_learning_type(self) -> str:
-        """Get the current learning type"""
         return self.learning_type
 
     def is_learning_type_selected(self) -> bool:
-        """Check if learning type has been selected"""
         return self.learning_type is not None
 
     def set_current_step(self, step: int):
-        """Set current step directly"""
         self.app_state.current_step = step
 
-        """Check if all preprocessing steps are completed"""
         return (
             self.app_state.preprocessing_steps.get('missing_values', False) and
             self.app_state.preprocessing_steps.get('outliers', False) and
@@ -182,12 +161,10 @@ class AppController:
         )
 
     def get_step_mapping_for_current_learning_type(self):
-        """Get step mapping based on current learning type"""
         learning_type = self.learning_type or "unsupervised"  # Default to unsupervised
         return step_mapping.get(learning_type, step_mapping["unsupervised"])
 
     def analyze_clusters(self):
-        """Analyze clusters using elbow method"""
         if not self.dataset_loader.has_data():
             return {
                 'error': True,
@@ -216,15 +193,12 @@ class AppController:
         return result
 
     def get_optimal_k(self):
-        """Get optimal K from clustering analysis"""
         return self.clustering_metrics.get_optimal_k()
 
     def get_silhouette_score(self):
-        """Get silhouette score from clustering analysis"""
         return self.clustering_metrics.get_silhouette_score()
 
     def get_algorithms_data(self):
-        """Get algorithms data based on learning type"""
         learning_type = self.get_learning_type()
 
         if learning_type == "unsupervised":
@@ -234,24 +208,19 @@ class AppController:
             return algorithms['supervised']
 
     def set_selected_algorithm(self, algorithm_name, algorithm_family):
-        """Set selected algorithm and family"""
         self.selected_algorithm = algorithm_name
         self.selected_algorithm_family = algorithm_family
 
     def get_selected_algorithm(self):
-        """Get selected algorithm name"""
         return self.selected_algorithm
 
     def get_selected_algorithm_family(self):
-        """Get selected algorithm family"""
         return self.selected_algorithm_family
 
     def is_algorithm_selected(self):
-        """Check if algorithm is selected"""
         return self.app_state.get_selected_algorithm() is not None
 
     def train_supervised_algorithm(self, algorithm_name, parameters=None):
-        """Train selected supervised algorithm"""
         if not self.dataset_loader.has_data():
             return {
                 'error': True,
@@ -310,7 +279,6 @@ class AppController:
             }
 
     def cleanup(self):
-        """Clean up resources"""
         try:
             import matplotlib.pyplot as plt
             plt.close('all')
@@ -328,40 +296,31 @@ class AppController:
             print(f"Error during cleanup: {e}")
 
     def get_selected_algorithm(self):
-        """Get the selected algorithm name"""
         return self.app_state.get_selected_algorithm()
 
     def get_algorithm_type(self):
-        """Get the selected algorithm type"""
         return self.app_state.get_algorithm_type()
 
     def set_selected_algorithm(self, algorithm_name, algorithm_type):
-        """Set the selected algorithm and type"""
         self.app_state.set_selected_algorithm(algorithm_name)
         self.app_state.set_algorithm_type(algorithm_type)
 
     def get_optimal_k(self):
-        """Get the optimal K from clustering metrics"""
         return self.app_state.get_optimal_k()
 
     def get_dataset(self):
-        """Get loaded dataset"""
         return self.dataset_loader.get_data()
 
     def is_algorithm_applied(self):
-        """Check if an algorithm has been applied and results are available"""
         if hasattr(self, 'algorithm_results') and self.algorithm_results:
             return True
         return False
 
     def set_algorithm_results(self, results):
-        """Store algorithm results after application"""
         self.algorithm_results = results
         
     def set_algorithm_parameters(self, parameters):
-     """Store algorithm parameters chosen by user"""
      self.algorithm_parameters = parameters
 
     def get_algorithm_parameters(self):
-     """Get stored algorithm parameters"""
      return getattr(self, 'algorithm_parameters', {})

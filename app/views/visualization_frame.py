@@ -75,12 +75,11 @@ class VisualizationFrame(tk.Frame):
         """Setup parameters input section"""
         params_frame = tk.LabelFrame(
             parent,
-            text="Algorithm Parameters",
+            text="Algorithm parameters",    
             bg="#f0f0f0",
             fg="#24367E",
             font=("Arial", 12, "bold"),
-            bd=2,
-            relief="groove"
+            bd=2
         )
         params_frame.grid(row=0, column=0, sticky="ew",
                           padx=(0, 10), pady=(0, 5))
@@ -252,7 +251,6 @@ class VisualizationFrame(tk.Frame):
             param_frame = tk.Frame(
                 self.params_grid_frame,
                 bg="white",
-                relief="groove",
                 bd=1
             )
             param_frame.grid(row=row, column=col, padx=5, pady=5, sticky="ew")
@@ -264,7 +262,7 @@ class VisualizationFrame(tk.Frame):
                 text=label_text,
                 bg="white",
                 fg="#24367E",
-                font=("Arial", 9, "bold")
+                font=("Arial", 10, "bold")
             )
             param_label.pack(pady=(5, 2))
 
@@ -453,7 +451,6 @@ class VisualizationFrame(tk.Frame):
 
         # Clear previous results
         self.results_text.delete(1.0, tk.END)
-        self.results_text.insert(tk.END, f"Applying {algorithm_name}...\n\n")
 
         try:
             if self.supervised_mode:
@@ -747,7 +744,7 @@ class VisualizationFrame(tk.Frame):
 
         # Header
         self.results_text.insert(tk.END, f"{algorithm} Results\n")
-        self.results_text.insert(tk.END, "=" * 20 + "\n\n")
+        self.results_text.insert(tk.END, "=" * 20 + "\n")
 
         # Basic info
         self.results_text.insert(tk.END, f"Algorithm: {algorithm}\n")
@@ -1150,7 +1147,7 @@ class VisualizationFrame(tk.Frame):
         self.results_text.insert(
             tk.END, "Dendrogram shows hierarchical structure\n")
         self.results_text.insert(
-            tk.END, "Red line indicates cluster cut level\n")
+            tk.END, "\nRed line indicates cluster cut level\n")
 
     def display_density_results(self, result, params):
         self.results_text.insert(tk.END, f"{result['algorithm']} Results\n")

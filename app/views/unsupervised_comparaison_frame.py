@@ -24,7 +24,7 @@ class UnsupervisedComparisonFrame(tk.Frame):
         # Title
         title_label = tk.Label(
             self,
-            text="Unsupervised algorithms comparison Interface",
+            text="Unsupervised algorithms comparison",
             bg="#f0f0f0",
             fg="#24367E",
             font=("Arial", 13, "bold")
@@ -46,11 +46,11 @@ class UnsupervisedComparisonFrame(tk.Frame):
 
         # Left metrics table frame
         left_metrics_frame = tk.Frame(
-            left_section, bg="white", relief="sunken", bd=2)
+            left_section, bd=2)
         left_metrics_frame.pack(fill=tk.X, padx=10, pady=5)
 
-        left_metrics_title = tk.Label(left_metrics_frame, text="Silhouette Score Comparison",
-                                      bg="white", fg="#24367E", font=("Arial", 10, "bold"))
+        left_metrics_title = tk.Label(left_metrics_frame, text="Silhouette score",
+                                      fg="#24367E", font=("Arial", 13, "bold"))
         left_metrics_title.pack(pady=2)
 
         # Left treeview (table) for metrics
@@ -65,16 +65,16 @@ class UnsupervisedComparisonFrame(tk.Frame):
 
         # Left plots frame
         left_plots_frame = tk.Frame(
-            left_section, bg="white", relief="sunken", bd=2)
+            left_section, bd=2)
         left_plots_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
 
-        left_plots_title = tk.Label(left_plots_frame, text="Visual Comparison",
-                                    bg="white", fg="#24367E", font=("Arial", 10, "bold"))
+        left_plots_title = tk.Label(left_plots_frame, text="Visual comparison",
+                                     fg="#24367E", font=("Arial", 13, "bold"))
         left_plots_title.pack(pady=3)
 
         # Left plot area
         left_single_plot_frame = tk.Frame(
-            left_plots_frame, bg="white", relief="groove", bd=1)
+            left_plots_frame, bg="white", bd=1)
         left_single_plot_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=2)
 
         self.left_single_plot_canvas = tk.Frame(
@@ -87,11 +87,11 @@ class UnsupervisedComparisonFrame(tk.Frame):
 
         # Right metrics table frame
         right_metrics_frame = tk.Frame(
-            right_section, bg="white", relief="sunken", bd=2)
+            right_section, bd=2)
         right_metrics_frame.pack(fill=tk.X, padx=10, pady=3)
 
-        right_metrics_title = tk.Label(right_metrics_frame, text="Silhouette Score Comparison",
-                                       bg="white", fg="#24367E", font=("Arial", 10, "bold"))
+        right_metrics_title = tk.Label(right_metrics_frame, text="Silhouette score",
+                                        fg="#24367E", font=("Arial", 13, "bold"))
         right_metrics_title.pack(pady=2)
 
         # Right treeview (table) for metrics
@@ -110,15 +110,15 @@ class UnsupervisedComparisonFrame(tk.Frame):
 
         # Right plots frame
         right_plots_frame = tk.Frame(
-            right_section, bg="white", relief="sunken", bd=2)
+            right_section, bd=2)
         right_plots_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=5)
 
-        right_plots_title = tk.Label(right_plots_frame, text="All Algorithms Visualization",
-                                     bg="white", fg="#24367E", font=("Arial", 10, "bold"))
+        right_plots_title = tk.Label(right_plots_frame, text="All algorithms visualization",
+                                     fg="#24367E", font=("Arial", 13, "bold"))
         right_plots_title.pack(pady=2)
 
         # Right plots grid
-        right_plots_grid = tk.Frame(right_plots_frame, bg="white")
+        right_plots_grid = tk.Frame(right_plots_frame)
         right_plots_grid.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
 
         right_plots_grid.grid_columnconfigure(0, weight=1)
@@ -133,11 +133,11 @@ class UnsupervisedComparisonFrame(tk.Frame):
         positions = [(0, 0), (0, 1), (1, 0), (1, 1)]
         for i, (row, col) in enumerate(positions):
             plot_frame = tk.Frame(
-                right_plots_grid, bg="white", relief="groove", bd=1)
+                right_plots_grid, bd=1)
             plot_frame.grid(row=row, column=col, sticky="nsew", padx=2, pady=2)
 
             plot_label = tk.Label(plot_frame, text=f"Algorithm {i+1}",
-                                  bg="white", fg="#24367E", font=("Arial", 9, "bold"))
+                                  fg="#24367E", font=("Arial", 9, "bold"))
             plot_label.pack()
 
             plot_canvas = tk.Frame(plot_frame, bg="white", height=80)
@@ -163,8 +163,7 @@ class UnsupervisedComparisonFrame(tk.Frame):
      scaler = StandardScaler()
      normalized_data = scaler.fit_transform(data)
      return normalized_data, None
-    
-    
+        
     def get_parameter_values(self):
         optimal_k = getattr(self.controller, 'optimal_k', None) or 3
 
@@ -503,7 +502,6 @@ class UnsupervisedComparisonFrame(tk.Frame):
                                   show_leaf_counts=False)
                 ax.set_xlabel('')
                 ax.set_ylabel('')
-                ax.set_title(algorithm_name, fontsize=8)
                 ax.set_xticks([])
                 ax.set_yticks([])
             except Exception as e:
@@ -635,8 +633,7 @@ class UnsupervisedComparisonFrame(tk.Frame):
                 dend1 = dendrogram(agnes_result['linkage_matrix'], ax=ax1,
                                    truncate_mode='lastp', p=15,
                                    show_leaf_counts=False)
-                ax1.set_title('AGNES', fontsize=10, fontweight='bold')
-
+                
                 if selected_algorithm == 'AGNES':
                     ax1.set_facecolor('#ffe6e6')
                     for spine in ax1.spines.values():
@@ -654,8 +651,7 @@ class UnsupervisedComparisonFrame(tk.Frame):
                 dend2 = dendrogram(diana_result['linkage_matrix'], ax=ax2,
                                    truncate_mode='lastp', p=15,
                                    show_leaf_counts=False)
-                ax2.set_title('DIANA', fontsize=10, fontweight='bold')
-
+                
                 if selected_algorithm == 'DIANA':
                     ax2.set_facecolor('#ffe6e6')
                     for spine in ax2.spines.values():

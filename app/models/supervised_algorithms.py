@@ -12,7 +12,6 @@ class SupervisedAlgorithms:
         self.results = {}
 
     def train_knn(self, X, y, n_neighbors=5, weights='uniform', algorithm='auto'):
-        """Train KNN classifier"""
         try:
             X_train, X_test, y_train, y_test = train_test_split(
                 X, y, test_size=0.2, random_state=42
@@ -58,7 +57,6 @@ class SupervisedAlgorithms:
             return {'error': True, 'message': str(e)}
 
     def train_naive_bayes(self, X, y, var_smoothing=1e-9):
-        """Train Naive Bayes classifier"""
         try:
             X_train, X_test, y_train, y_test = train_test_split(
                 X, y, test_size=0.2, random_state=42
@@ -97,7 +95,6 @@ class SupervisedAlgorithms:
             return {'error': True, 'message': str(e)}
 
     def train_c45(self, X, y, criterion='entropy', max_depth=None, min_samples_split=2):
-        """Train C4.5 (Decision Tree) classifier"""
         try:
             X_train, X_test, y_train, y_test = train_test_split(
                 X, y, test_size=0.2, random_state=42
@@ -146,18 +143,14 @@ class SupervisedAlgorithms:
             return {'error': True, 'message': str(e)}
 
     def get_model(self, algorithm_name):
-        """Get trained model"""
         return self.models.get(algorithm_name)
 
     def get_result(self, algorithm_name):
-        """Get algorithm result"""
         return self.results.get(algorithm_name)
 
     def get_all_results(self):
-        """Get all algorithm results"""
         return self.results
 
     def clear_results(self):
-        """Clear all models and results"""
         self.models.clear()
         self.results.clear()

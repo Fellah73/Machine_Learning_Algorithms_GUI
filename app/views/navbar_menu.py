@@ -12,18 +12,14 @@ class NavbarMenu(ttk.Frame):
 
         self.config(padding=0, relief='flat', height=50)
 
-        # Create buttons based on constants
         self.buttons = {}
-        self.create_buttons(menuButtons)  # Use base buttons initially
+        self.create_buttons(menuButtons) 
     
     def create_buttons(self, button_list):
-        """Create buttons from button list"""
-        # Clear existing buttons
         for widget in self.winfo_children():
             widget.destroy()
         self.buttons = {}
         
-        # Create new buttons
         for button_name in button_list:
             button = tk.Button(
                 self, 
@@ -35,7 +31,7 @@ class NavbarMenu(ttk.Frame):
                 bd=0, 
                 relief='ridge', 
                 highlightthickness=5, 
-                highlightbackground="#7b9fc2"
+                highlightbackground="#7b9fc2"              
             )
             button.pack(side=tk.LEFT, padx=10, pady=15)
             self.buttons[button_name] = button

@@ -15,7 +15,8 @@ class PreprocessingFrame(ttk.Frame):
             text="Data preprocessing",
             bg="#f0f0f0",
             fg="#24367E",
-            font=("Arial", 18, "bold")
+            font=("Arial", 18, "bold"),
+            padx=20
         )
         titleLabel.pack(pady=15)
 
@@ -33,14 +34,15 @@ class PreprocessingFrame(ttk.Frame):
         # 1 - Missing values button
         self.missing_values_button = tk.Button(
             stepsFrame,
-            text="1. Analyze & Fill Missing Values",
+            text="1. Analyze missing values",
             bg="#24367E",
             fg="white",
-            font=("Arial", 10, "bold"),
+            font=("Arial", 12, "bold"),
             width=16,
             height=2,
             relief="raised",
             bd=2,
+            padx=5,
             command=self.analyze_missing_values
         )
         self.missing_values_button.grid(
@@ -49,14 +51,15 @@ class PreprocessingFrame(ttk.Frame):
         # 2 - Outliers button
         self.outliers_button = tk.Button(
             stepsFrame,
-            text="2. Detect Outliers",
+            text="2. Detect outliers",
             bg="#374451",
             fg="white",
-            font=("Arial", 10, "bold"),
+            font=("Arial", 12, "bold"),
             width=16,
             height=2,
             relief="raised",
             bd=2,
+            padx=5,
             command=self.analyze_outliers
         )
         self.outliers_button.grid(
@@ -66,31 +69,32 @@ class PreprocessingFrame(ttk.Frame):
         # 3 - Normalization button
         self.normalization_button = tk.Button(
             stepsFrame,
-            text="3. Normalize Data",
+            text="3. Normalize data",
             bg="#374451",
             fg="white",
-            font=("Arial", 10, "bold"),
+            font=("Arial", 12, "bold"),
             width=16,
             height=2,
             relief="raised",
             bd=2,
+            padx=5,
             command=self.normalize_data
         )
         self.normalization_button.grid(
             row=0, column=2, padx=5, pady=10, sticky="ew")
         self.normalization_button.config(state=tk.DISABLED)
 
-        # Next Step button
         self.nextStepPreprocessing = tk.Button(
             stepsFrame,
             text="Next Step",
-            bg="#374451",
+            bg="#4F545A",
             fg="white",
-            font=("Arial", 10, "bold"),
+            font=("Arial", 12, "bold"),
             width=16,
             height=2,
             relief="raised",
             bd=2,
+            padx=5,
             command=self.on_next_step_click
         )
         self.nextStepPreprocessing.grid(row=0, column=3, columnspan=3, pady=10)
@@ -100,21 +104,9 @@ class PreprocessingFrame(ttk.Frame):
         separator = tk.Frame(self, height=2, bg="#7b9fc2")
         separator.pack(fill=tk.X, padx=30, pady=15)
 
-        # Results label
-        resultsLabel = tk.Label(
-            self,
-            text="Results:",
-            bg="#f0f0f0",
-            fg="#24367E",
-            font=("Arial", 14, "bold")
-        )
-        resultsLabel.pack(anchor=tk.W, padx=30)
-
-        # Results frame
         resultsFrame = tk.Frame(self, bg="#f0f0f0")
         resultsFrame.pack(pady=5, fill=tk.BOTH, expand=True, padx=30)
 
-        # Text area with scrollbar
         self.resultsText = scrolledtext.ScrolledText(
             resultsFrame,
             height=12,
@@ -260,8 +252,6 @@ class PreprocessingFrame(ttk.Frame):
                 tk.END, f"Categorical columns filled with mode: {len(result['categorical_columns_filled'])} columns\n")
 
         self.resultsText.insert(
-            tk.END, "\nStatus: Missing values analysis completed successfully.\n")
-        self.resultsText.insert(
             tk.END, "Dataset is now ready for outlier detection.\n")
 
     def display_outliers_results(self, result):
@@ -287,8 +277,6 @@ class PreprocessingFrame(ttk.Frame):
                 tk.END, "No outliers found in any numeric columns.\n")
 
         self.resultsText.insert(
-            tk.END, "\nStatus: Outliers detection completed successfully.\n")
-        self.resultsText.insert(
             tk.END, "Dataset is now ready for normalization.\n")
 
     def display_normalization_results(self, result):
@@ -310,8 +298,6 @@ class PreprocessingFrame(ttk.Frame):
             self.resultsText.insert(
                 tk.END, f"Scaled numeric features: {len(result['scaled_features'])}\n")
 
-        self.resultsText.insert(
-            tk.END, "\nStatus: Data normalization completed successfully.\n")
         self.resultsText.insert(
             tk.END, "Dataset is now ready for clustering analysis.\n")
 

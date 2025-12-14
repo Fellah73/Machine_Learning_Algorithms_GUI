@@ -15,7 +15,7 @@ class AlgorithmsFrame(tk.Frame):
     def setup_ui(self): 
         title_label = tk.Label(
             self,
-            text="Algorithm Selection",
+            text="Algorithm selection",
             bg="#f0f0f0",
             fg="#24367E",
             font=("Arial", 18, "bold")
@@ -49,7 +49,7 @@ class AlgorithmsFrame(tk.Frame):
             text="Partitioning",
             bg="#24367E",
             fg="white",
-            font=("Arial", 12, "bold"),
+            font=("Arial", 14, "bold"),
             width=15,
             height=2,
             relief="raised",
@@ -64,7 +64,7 @@ class AlgorithmsFrame(tk.Frame):
             text="Hierarchical",
             bg="#374451",
             fg="white",
-            font=("Arial", 12, "bold"),
+            font=("Arial", 14, "bold"),
             width=15,
             height=2,
             relief="raised",
@@ -79,7 +79,7 @@ class AlgorithmsFrame(tk.Frame):
             text="Density-based",
             bg="#374451",
             fg="white",
-            font=("Arial", 12, "bold"),
+            font=("Arial", 14, "bold"),
             width=15,
             height=2,
             relief="raised",
@@ -108,7 +108,7 @@ class AlgorithmsFrame(tk.Frame):
             text="Lazy Learning",
             bg="#24367E",
             fg="white",
-            font=("Arial", 12, "bold"),
+            font=("Arial", 14, "bold"),
             width=15,
             height=2,
             relief="raised",
@@ -123,7 +123,7 @@ class AlgorithmsFrame(tk.Frame):
             text="Probabilistic",
             bg="#374451",
             fg="white",
-            font=("Arial", 12, "bold"),
+            font=("Arial", 14, "bold"),
             width=15,
             height=2,
             relief="raised",
@@ -138,7 +138,7 @@ class AlgorithmsFrame(tk.Frame):
             text="Tree-based",
             bg="#374451",
             fg="white",
-            font=("Arial", 12, "bold"),
+            font=("Arial", 14, "bold"),
             width=15,
             height=2,
             relief="raised",
@@ -151,10 +151,6 @@ class AlgorithmsFrame(tk.Frame):
         self.show_algorithm_family("Lazy Learning")  # Default selection
 
     def setup_content_area(self):
-        # Separator
-        separator = tk.Frame(self, height=2, bg="#7b9fc2")
-        separator.pack(fill=tk.X, padx=30, pady=15)
-
         # Main content frame
         self.main_content_frame = tk.Frame(self, bg="#f0f0f0")
         self.main_content_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
@@ -189,26 +185,26 @@ class AlgorithmsFrame(tk.Frame):
 
         # Right part: Image and navigation
         self.right_frame = tk.Frame(
-            self.main_content_frame, bg="#f8f9fa", relief="raised", bd=2
+            self.main_content_frame, bd=2
         )
         self.right_frame.grid(row=0, column=1, sticky="nsew")
 
         # Image display frame
         self.image_display_frame = tk.Frame(
-            self.right_frame, bg="white", relief="sunken", bd=1, width=240, height=200
+            self.right_frame, relief="sunken", bd=1, width=250, height=210
         )
-        self.image_display_frame.pack(pady=10, padx=10)
-        self.image_display_frame.pack_propagate(False)
+        self.image_display_frame.pack(pady=0, padx=0)
+        self.image_display_frame.pack_propagate(True)
 
         # Image label
         self.image_label = tk.Label(
             self.image_display_frame,
-            text="Algorithm\nImage",
-            bg="white",
             fg="#666",
-            font=("Arial", 10)
+            font=("Arial", 10),
+            width=240,
+            height=200,
         )
-        self.image_label.pack(expand=True)
+        self.image_label.pack(expand=True, fill=tk.BOTH)
 
         # Navigation buttons
         self.setup_navigation_buttons()
@@ -296,7 +292,7 @@ class AlgorithmsFrame(tk.Frame):
         self.desc_text.config(state=tk.NORMAL)
         self.desc_text.delete(1.0, tk.END)
 
-        description = f"{family_type.upper()} ALGORITHMS\n\n"
+        description = f"{family_type} algorithms\n"
         description += f"{family_info['description']}\n\n"
         description += "Available algorithms:\n\n"
 
@@ -319,25 +315,10 @@ class AlgorithmsFrame(tk.Frame):
         if photo:
             self.image_label.config(image=photo, text="")
             self.image_label.image = photo  # Keep reference
-            
-        else:
-            # placeholder text
-            self.image_label.config(
-                image="",
-                text=f"{family_type}\nImage",
-                font=("Arial", 9),
-                fg="#666"
-            )
-    
+            self.image_label.grid(row=0, column=0, sticky="nsew")
 
      except Exception as e:
         print(f"Error in load_family_image for {self.current_algorithm_type}: {e}")
-        self.image_label.config(
-            image="",
-            text=f"{self.current_algorithm_type}\nImage\nError",
-            font=("Arial", 9),
-            fg="#ff4444"
-        )
 
     def create_algorithm_buttons(self, family_type):
         # Clear existing buttons
@@ -377,10 +358,9 @@ class AlgorithmsFrame(tk.Frame):
             algo_frame.grid_rowconfigure(2, weight=1)
             algo_frame.grid_columnconfigure(0, weight=1)
 
-            # Algorithm name label
             name_label = tk.Label(
                 algo_frame,
-                text=f"🔹 {algo_name}",
+                text=f"{algo_name}",
                 bg="#f9f9f9",
                 fg="#24367E",
                 font=("Arial", 11, "bold")
@@ -398,12 +378,12 @@ class AlgorithmsFrame(tk.Frame):
                 font=("Arial", 13),
                 wraplength=120
             )
-            params_label.grid(row=1, column=0, pady=2, sticky="ew")
+            params_label.grid(row=1, column=0, pady=1, sticky="ew")
 
             # Select button
             select_btn = tk.Button(
                 algo_frame,
-                text="✅ Select",
+                text="Select",
                 bg="#7b9fc2",
                 fg="white",
                 font=("Arial", 9, "bold"),
@@ -446,14 +426,14 @@ class AlgorithmsFrame(tk.Frame):
                 components['frame'].config(bg="#d4edda", relief="solid", bd=2)
                 components['name_label'].config(bg="#d4edda")
                 components['button'].config(
-                    text=f"✅ {selected_name} (Selected)",
+                    text=f"{selected_name} (Selected)",
                     bg="#28a745"
                 )
             else:
                 # Default style
                 components['frame'].config(bg="#f9f9f9", relief="solid", bd=1)
                 components['name_label'].config(bg="#f9f9f9")
-                components['button'].config(text="✅ Select", bg="#7b9fc2")
+                components['button'].config(text="Select", bg="#7b9fc2")
 
     def on_next_step(self):
         """Handle next step button click"""

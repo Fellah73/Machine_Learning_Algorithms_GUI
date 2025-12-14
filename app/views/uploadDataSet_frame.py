@@ -22,10 +22,11 @@ class UploadDataSetFrame(ttk.Frame):
         # Label
         self.uploadLabel = tk.Label(
             centerFrame,
-            text="Upload your dataset here",
+            text="upload your dataset here",
             bg="#f0f0f0",
             fg="#24367E",
-            font=("Arial", 16)
+            font=("Arial", 18),
+            padx=10,
         )
         self.uploadLabel.pack(pady=20)
 
@@ -39,7 +40,7 @@ class UploadDataSetFrame(ttk.Frame):
             text="Choose File",
             bg="#7b9fc2",
             fg="white",
-            font=("Arial", 14),
+            font=("Arial", 16),
             bd=0,
             relief='ridge',
             highlightthickness=5,
@@ -53,7 +54,7 @@ class UploadDataSetFrame(ttk.Frame):
             buttonFrame,
             text="Next Step",
             fg="white",
-            font=("Arial", 14),
+            font=("Arial", 16),
             bd=0,
             relief='ridge',
             highlightthickness=5,
@@ -74,7 +75,8 @@ class UploadDataSetFrame(ttk.Frame):
             self.uploadLabel.config(
                 text=f"File uploaded successfully\n"
                 f"File: {result['file_name']}\n"
-                f"Rows: {result['rows']}, Columns: {result['columns']}"
+                f"Rows: {result['rows']}\n"
+                f"Columns: {result['columns']}"
             )
 
             # Change button text

@@ -42,7 +42,7 @@ step_mapping = {
 algorithms = {
     'unsupervised': {
         "Partitioning": {
-            "description": "Divise les données en k partitions non-chevauchantes où chaque point appartient à exactement un cluster.",
+            "description": "Divides the data into k non-overlapping partitions where each point belongs to exactly one cluster.",
             "algorithms": {
                 "K-Means": {
                     "parameters": ["n_clusters", "distance_metric", 'max_iter'],
@@ -54,7 +54,7 @@ algorithms = {
         },
 
         "Hierarchical": {
-            "description": "Crée une hiérarchie de clusters en formant un arbre de clusters (dendrogramme).",
+            "description": "Creates a cluster hierarchy by forming a cluster tree (dendrogram).",
             "algorithms": {
                 "AGNES": {
                     "parameters": ["n_clusters", "linkage", 'distance_metric'],
@@ -66,7 +66,7 @@ algorithms = {
         },
 
         "Density-based": {
-            "description": "Identifie les clusters comme des zones denses séparées par des zones de faible densité.",
+            "description": "Identifies clusters as dense areas separated by areas of low density.",
             "algorithms": {
                 "DBSCAN": {
                     "parameters": ["eps", "min_samples"],

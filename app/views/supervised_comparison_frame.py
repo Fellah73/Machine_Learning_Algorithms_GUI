@@ -22,7 +22,7 @@ class SupervisedComparisonFrame(tk.Frame):
     def setup_ui(self):
         title_label = tk.Label(
             self,
-            text="Supervised algorithms comparison Interface",
+            text="Supervised algorithms comparison",
             bg="#f0f0f0",
             fg="#24367E",
             font=("Arial", 18, "bold")
@@ -32,13 +32,12 @@ class SupervisedComparisonFrame(tk.Frame):
         main_frame = tk.Frame(self, bg="#f0f0f0")
         main_frame.pack(fill=tk.BOTH, expand=True, padx=50, pady=20)
 
-        table_frame = tk.Frame(main_frame, bg="white", relief="sunken", bd=2)
-        table_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=20)
+        table_frame = tk.Frame(main_frame, bd=2)
+        table_frame.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
 
         table_title = tk.Label(
             table_frame,
             text="Performance Metrics Comparison (Multiple Test Sizes)",
-            bg="white",
             fg="#24367E",
             font=("Arial", 16, "bold")
         )
@@ -57,9 +56,9 @@ class SupervisedComparisonFrame(tk.Frame):
         self.comparison_treeview.heading('Test_Size', text='Test Size')
         self.comparison_treeview.heading('Algorithm', text='Algorithm')
         self.comparison_treeview.heading('Accuracy', text='Accuracy')
-        self.comparison_treeview.heading('Precision', text='Precision (Macro)')
-        self.comparison_treeview.heading('Recall', text='Recall (Macro)')
-        self.comparison_treeview.heading('F1-Score', text='F1-Score (Macro)')
+        self.comparison_treeview.heading('Precision', text='Precision')
+        self.comparison_treeview.heading('Recall', text='Recall')
+        self.comparison_treeview.heading('F1-Score', text='F1-Score')
 
         self.comparison_treeview.column('Test_Size', width=100)
         self.comparison_treeview.column('Algorithm', width=120)
@@ -305,9 +304,7 @@ class SupervisedComparisonFrame(tk.Frame):
             return
 
         try:
-            print(f"Running supervised comparison for: {selected_algorithm}")
             self.update_comparison_table()
-            print("Supervised comparison completed successfully")
         except Exception as e:
             print(f"Error in supervised comparison analysis: {e}")
 

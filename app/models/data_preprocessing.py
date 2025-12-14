@@ -12,7 +12,6 @@ class DataPreprocessor:
         self.preprocessing_steps: List[str] = []
     
     def analyze_missing_values(self, data: pd.DataFrame) -> Dict[str, Any]:
-        """Analyze and fill missing values in the dataset"""
         try:
             if data is None:
                 return {
@@ -109,7 +108,6 @@ class DataPreprocessor:
             }
     
     def analyze_outliers(self, data: pd.DataFrame) -> Dict[str, Any]:
-        """Detect outliers using IQR method"""
         try:
             if data is None:
                 return {
@@ -172,7 +170,6 @@ class DataPreprocessor:
             }
     
     def normalize_data(self, data: pd.DataFrame) -> Dict[str, Any]:
-        """Normalize data using StandardScaler and LabelEncoder"""
         try:
             if data is None:
                 return {
@@ -241,7 +238,6 @@ class DataPreprocessor:
             }
     
     def get_preprocessing_summary(self) -> Dict[str, Any]:
-        """Get summary of all preprocessing steps performed"""
         return {
             'steps_completed': self.preprocessing_steps.copy(),
             'total_steps': len(self.preprocessing_steps),
@@ -250,7 +246,6 @@ class DataPreprocessor:
         }
     
     def reset(self):
-        """Reset all preprocessing state"""
         self.scaler = None
         self.encoders = {}
         self.preprocessing_steps = []

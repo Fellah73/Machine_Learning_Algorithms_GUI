@@ -10,7 +10,6 @@ class ClusteringMetrics:
         self.silhouette_score_value = None
 
     def analyze_clusters(self, data):
-        """Analyze clusters using elbow method and silhouette score"""
         try:
             if data is None or len(data) == 0:
                 # Generate sample data if no data provided
@@ -55,15 +54,12 @@ class ClusteringMetrics:
             }
 
     def find_optimal_k(self, wcss_values):
-        """Find optimal K using elbow method"""
         diffs = np.diff(wcss_values, 2)
         optimal_k = np.argmax(diffs) + 2
         return min(optimal_k, 8)
 
     def get_optimal_k(self):
-        """Get stored optimal K value"""
         return self.optimal_k
 
     def get_silhouette_score(self):
-        """Get stored silhouette score"""
         return self.silhouette_score_value

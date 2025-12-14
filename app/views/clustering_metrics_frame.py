@@ -15,7 +15,7 @@ class ClusteringMetricsFrame(tk.Frame):
         # Title label
         title_label = tk.Label(
             self,
-            text="Cluster Analysis",
+            text="Clustering analysis",
             bg="#f0f0f0",
             fg="#24367E",
             font=("Arial", 18, "bold")
@@ -42,7 +42,7 @@ class ClusteringMetricsFrame(tk.Frame):
         # Metrics title
         metrics_title = tk.Label(
             metrics_frame,
-            text="Cluster Metrics",
+            text="Clustering metrics",
             bg="#f8f9fa",
             fg="#24367E",
             font=("Arial", 14, "bold")
@@ -55,16 +55,16 @@ class ClusteringMetricsFrame(tk.Frame):
             text="Optimal K: Calculating...",
             bg="#f8f9fa",
             fg="#333",
-            font=("Arial", 12)
+            font=("Arial", 13)
         )
         self.optimal_k_label.pack(pady=10)
 
         self.silhouette_label = tk.Label(
             metrics_frame,
-            text="Silhouette Score: -",
+            text="Silhouette Score: Calculating...",
             bg="#f8f9fa",
             fg="#333",
-            font=("Arial", 12)
+            font=("Arial", 13)
         )
         self.silhouette_label.pack(pady=5)
 
@@ -102,7 +102,7 @@ class ClusteringMetricsFrame(tk.Frame):
         # Back button
         self.back_button = tk.Button(
             metrics_frame,
-            text="← Back",
+            text="Back",
             bg="#6c757d",
             fg="white",
             font=("Arial", 12, "bold"),

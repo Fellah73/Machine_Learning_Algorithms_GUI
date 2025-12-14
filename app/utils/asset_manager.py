@@ -5,17 +5,13 @@ import tkinter as tk
 
 class AssetManager:
     def __init__(self):
-        # Chemin vers le dossier assets dans app/
-        self.project_root = Path(__file__).parent.parent  # app/
+        self.project_root = Path(__file__).parent.parent 
         self.assets_path = self.project_root / "assets"
         self.images_path = self.assets_path / "images" / "algorithms"
         
-        # Cache pour les images chargées
         self._image_cache = {}
-        
-        
-    def get_algorithm_image(self, learning_type, family_type, size=(180, 140)):
-        """Récupérer l'image d'une famille d'algorithmes"""
+               
+    def get_algorithm_image(self, learning_type, family_type, size=(250, 210)):
         cache_key = f"{learning_type}_{family_type}_{size}"
         
         if cache_key in self._image_cache:
@@ -60,9 +56,7 @@ class AssetManager:
             return self._get_placeholder_image(family_type, size)
     
     def _get_placeholder_image(self, family_type, size):
-        """Créer une image placeholder si l'image n'existe pas"""
         try:
-            # Créer une image simple avec couleur de fond
             colors = {
                 "Partitioning": "#4CAF50",
                 "Hierarchical": "#2196F3", 
@@ -82,5 +76,5 @@ class AssetManager:
             print(f"Error creating placeholder: {e}")
             return None
 
-# Instance globale
+
 asset_manager = AssetManager()
