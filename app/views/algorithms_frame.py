@@ -1,7 +1,6 @@
 import tkinter as tk
-from tkinter import ttk, scrolledtext
+from tkinter import scrolledtext
 from app.utils.asset_manager import asset_manager
-
 
 class AlgorithmsFrame(tk.Frame):
     def __init__(self, parent, controller):
@@ -406,7 +405,6 @@ class AlgorithmsFrame(tk.Frame):
             }
 
     def select_algorithm(self, algo_name):
-        """Handle algorithm selection"""
         self.selected_algorithm = algo_name
 
         # Update controller
@@ -439,15 +437,3 @@ class AlgorithmsFrame(tk.Frame):
         """Handle next step button click"""
         if self.selected_algorithm:
             self.event_generate("<<NextStep>>")
-
-    def reset_selection(self):
-        """Reset algorithm selection"""
-        self.selected_algorithm = None
-        self.current_algorithm_type = None
-        self.next_button.config(state=tk.DISABLED, bg="#374451")
-        
-        # Reset all button styles
-        for components in self.algorithm_buttons.values():
-            components['frame'].config(bg="#f9f9f9", relief="solid", bd=1)
-            components['name_label'].config(bg="#f9f9f9")
-            components['button'].config(text="✅ Select", bg="#7b9fc2")

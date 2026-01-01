@@ -8,7 +8,7 @@ class PreprocessingFrame(ttk.Frame):
     def __init__(self, parent, controller):
         super().__init__(parent)
         self.controller = controller
-        
+
         # Title label
         titleLabel = tk.Label(
             self,
@@ -95,7 +95,7 @@ class PreprocessingFrame(ttk.Frame):
             relief="raised",
             bd=2,
             padx=5,
-            command=self.on_next_step_click
+            command=self.on_next_step
         )
         self.nextStepPreprocessing.grid(row=0, column=3, columnspan=3, pady=10)
         self.nextStepPreprocessing.config(state=tk.DISABLED)
@@ -121,8 +121,7 @@ class PreprocessingFrame(ttk.Frame):
 
         # Initialize text area
         self._initialize_results_text()
-        
-        
+
     def _initialize_results_text(self):
         """Initialize the results text area with default message"""
         self.resultsText.insert(tk.END, "Preprocessing panel:\n")
@@ -131,44 +130,9 @@ class PreprocessingFrame(ttk.Frame):
             tk.END,
             "Select The analysis & fill missing values step to begin.\n\n"
         )
-
-    def on_next_step_click(self):
-        """Handler for next step button"""
-        # Emit event to notify main view
-        self.event_generate("<<NextStep>>")
-
-    def update_results(self, text: str):
-        """Update the results text area"""
-        self.resultsText.delete(1.0, tk.END)
-        self.resultsText.insert(tk.END, text)
-
-    def enable_outliers_button(self):
-        """Enable outliers detection button"""
-        self.missing_values_button.config(state=tk.DISABLED, bg="#374451")
-        self.outliers_button.config(state=tk.NORMAL, bg="#24367E")
-        self.normalization_button.config(state=tk.DISABLED, bg="#374451")
-
-    def enable_normalization_button(self):
-        """Enable normalization button"""
-        self.missing_values_button.config(state=tk.DISABLED, bg="#374451")
-        self.outliers_button.config(state=tk.DISABLED, bg="#374451")
-        self.normalization_button.config(state=tk.NORMAL, bg="#24367E")
-
-    def enable_next_step_button(self):
-        """Enable next step button"""
-        self.missing_values_button.config(state=tk.DISABLED, bg="#374451")
-        self.outliers_button.config(state=tk.DISABLED, bg="#374451")
-        self.normalization_button.config(state=tk.DISABLED, bg="#374451")
-        self.nextStepPreprocessing.config(state=tk.NORMAL, bg="#24367E")
-
-    def setup_buttons(self):
-        self.missing_values_button.config(command=self.analyze_missing_values)
-        self.outliers_button.config(command=self.analyze_outliers)
-        self.normalization_button.config(command=self.normalize_data)
-        self.nextStepPreprocessing.config(command=self.on_next_step)
-
+ 
+    # Preprocessing steps handlers
     def analyze_missing_values(self):
-        """Handle missing values analysis"""
         self.resultsText.delete(1.0, tk.END)
         self.resultsText.insert(tk.END, "Analyzing missing values...\n")
 
@@ -186,7 +150,6 @@ class PreprocessingFrame(ttk.Frame):
         self.outliers_button.config(state=tk.NORMAL, bg="#24367E")
 
     def analyze_outliers(self):
-        """Handle outliers analysis"""
         self.resultsText.delete(1.0, tk.END)
         self.resultsText.insert(tk.END, "Detecting outliers...\n")
 
@@ -204,7 +167,6 @@ class PreprocessingFrame(ttk.Frame):
         self.normalization_button.config(state=tk.NORMAL, bg="#24367E")
 
     def normalize_data(self):
-        """Handle data normalization"""
         self.resultsText.delete(1.0, tk.END)
         self.resultsText.insert(tk.END, "Normalizing data...\n")
 
@@ -221,6 +183,7 @@ class PreprocessingFrame(ttk.Frame):
         self.normalization_button.config(state=tk.DISABLED, bg="#374451")
         self.nextStepPreprocessing.config(state=tk.NORMAL, bg="#24367E")
 
+    # Display results methods
     def display_missing_values_results(self, result):
         """Display missing values analysis results"""
         self.resultsText.insert(tk.END, "Missing values analysis:\n")
@@ -301,10 +264,11 @@ class PreprocessingFrame(ttk.Frame):
         self.resultsText.insert(
             tk.END, "Dataset is now ready for clustering analysis.\n")
 
+    # next step handler
     def on_next_step(self):
-        """Handle next step button click"""
         if self.controller.is_preprocessing_complete():
-            self.event_generate("<<NextStep>>")  # Ceci ira vers Learning Type maintenant
+            self.event_generate("<<NextStep>>")
         else:
             from tkinter import messagebox
-            messagebox.showwarning("Warning", "Please complete all preprocessing steps before proceeding.")
+            messagebox.showwarning(
+                "Warning", "Please complete all preprocessing steps before proceeding.")

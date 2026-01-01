@@ -1,9 +1,6 @@
 import tkinter as tk
-from tkinter import scrolledtext
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-import numpy as np
-
 
 class ClusteringMetricsFrame(tk.Frame):
     def __init__(self, parent, controller):
@@ -99,23 +96,7 @@ class ClusteringMetricsFrame(tk.Frame):
         )
         self.next_step_button.pack(pady=10)
 
-        # Back button
-        self.back_button = tk.Button(
-            metrics_frame,
-            text="Back",
-            bg="#6c757d",
-            fg="white",
-            font=("Arial", 12, "bold"),
-            width=15,
-            height=2,
-            relief="raised",
-            bd=2,
-            command=self.on_back_step
-        )
-        self.back_button.pack(pady=5)
-
     def analyze_clusters(self):
-        """Analyze clusters and display results"""
         try:
             # Get clustering analysis from controller
             result = self.controller.analyze_clusters()
@@ -171,7 +152,3 @@ class ClusteringMetricsFrame(tk.Frame):
     def on_next_step(self):
         """Handle next step button click"""
         self.event_generate("<<NextStep>>")
-
-    def on_back_step(self):
-        """Handle back step button click"""
-        self.event_generate("<<PreviousStep>>")

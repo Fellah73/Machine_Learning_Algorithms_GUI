@@ -3,18 +3,9 @@ from tkinter import ttk, scrolledtext
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
-from sklearn.cluster import KMeans, DBSCAN
-from scipy.cluster.hierarchy import dendrogram, linkage
-from scipy.spatial.distance import pdist
-import pandas as pd
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.naive_bayes import GaussianNB
-from sklearn.tree import DecisionTreeClassifier, plot_tree
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
-from sklearn.preprocessing import LabelEncoder
+from scipy.cluster.hierarchy import dendrogram
+from sklearn.tree import plot_tree
 from app.models.dataSet_loader import DataSetLoader
-from scipy.spatial.distance import cdist
 
 
 class VisualizationFrame(tk.Frame):
@@ -25,6 +16,8 @@ class VisualizationFrame(tk.Frame):
         self.supervised_mode = False
         self.parameter_widgets = {}
         self.setup_ui()
+
+    # Dynamic rendering functions
 
     def setup_ui(self):
         # Check learning type
@@ -72,10 +65,9 @@ class VisualizationFrame(tk.Frame):
         self.setup_navigation(main_frame)
 
     def setup_parameters_section(self, parent):
-        """Setup parameters input section"""
         params_frame = tk.LabelFrame(
             parent,
-            text="Algorithm parameters",    
+            text="Algorithm parameters",
             bg="#f0f0f0",
             fg="#24367E",
             font=("Arial", 12, "bold"),
@@ -93,7 +85,6 @@ class VisualizationFrame(tk.Frame):
             self.params_grid_frame.grid_columnconfigure(i, weight=1)
 
     def setup_apply_button(self, parent):
-        """Setup apply algorithm button"""
         button_frame = tk.Frame(parent, bg="#f0f0f0")
         button_frame.grid(row=0, column=1, sticky="nsew", pady=(0, 5))
 
@@ -112,7 +103,6 @@ class VisualizationFrame(tk.Frame):
         self.apply_btn.pack(pady=20)
 
     def setup_visualization_section(self, parent):
-        """Setup visualization and results section"""
         content_frame = tk.Frame(parent, bg="#f0f0f0")
         content_frame.grid(row=1, column=0, columnspan=2, sticky="nsew")
 
@@ -144,7 +134,6 @@ class VisualizationFrame(tk.Frame):
         self.setup_results_section(content_frame)
 
     def setup_results_section(self, parent):
-        """Setup results display section"""
         results_frame = tk.Frame(parent, bg="#f8f9fa", relief="raised", bd=2)
         results_frame.grid(row=0, column=1, sticky="nsew", padx=(5, 0))
 
@@ -180,7 +169,6 @@ class VisualizationFrame(tk.Frame):
             tk.END, "Results will appear here after applying the algorithm...\n\n")
 
     def setup_navigation(self, parent):
-        """Setup navigation buttons"""
         nav_frame = tk.Frame(parent, bg="#f0f0f0")
         nav_frame.grid(row=2, column=0, columnspan=2, pady=10)
 
@@ -201,7 +189,6 @@ class VisualizationFrame(tk.Frame):
         self.next_btn.pack(side=tk.LEFT, padx=(10, 0))
 
     def create_parameter_inputs(self):
-        """Create parameter input widgets based on selected algorithm"""
         # Clear existing parameters
         for widget in self.params_grid_frame.winfo_children():
             widget.destroy()
@@ -228,7 +215,6 @@ class VisualizationFrame(tk.Frame):
                 params, algorithm_name, algorithm_type)
 
     def show_no_algorithm_message(self):
-        """Show message when no algorithm is selected"""
         msg_label = tk.Label(
             self.params_grid_frame,
             text="No algorithm selected. Please go back and select an algorithm.",
@@ -437,7 +423,6 @@ class VisualizationFrame(tk.Frame):
         return values
 
     def apply_algorithm(self):
-        """Apply the selected algorithm with current parameters"""
         algorithm_name = self.controller.get_selected_algorithm()
         algorithm_type = self.controller.get_algorithm_type()
 
@@ -465,174 +450,32 @@ class VisualizationFrame(tk.Frame):
             self.show_error(f"Error applying algorithm: {str(e)}")
 
     def apply_supervised_algorithm(self, algorithm_name, params):
-        # Get dataset for supervised learning
-        dataset = self.controller.dataset_loader.data
+        # get results from controller
+        result, numeric_features, le = self.controller.apply_supervised_algorithm(
+            algorithm_name, params)
 
-        if dataset is None:
-            self.show_error("No dataset loaded")
-            return
-
-        # Prepare data for supervised learning
-        if len(dataset.columns) < 2:
-            self.show_error(
-                "Dataset needs at least 2 columns (features + target)")
-            return
-
-        # Get features and target
-        # Assume last column is target
-        X = dataset.iloc[:, :-1]
-        y = dataset.iloc[:, -1]
-
-        # Select numeric features only
-        numeric_features = X.select_dtypes(include=[np.number])
-        if len(numeric_features.columns) == 0:
-            self.show_error("No numeric features found")
-            return
-
-        X_numeric = numeric_features.values
-
-        # Encode target if it's categorical
-        le = LabelEncoder()
-        y_encoded = le.fit_transform(y)
-
-        # Apply algorithm based on name
+        # Plot functions
         if algorithm_name == "KNN":
-            result = self.apply_knn_algorithm(X_numeric, y_encoded, params)
             if result:
                 self.create_knn_plot(result)
-                self.display_supervised_results(result, params, le.classes_)
 
         elif algorithm_name == "Naive Bayes":
-            result = self.apply_naive_bayes_algorithm(
-                X_numeric, y_encoded, params)
             if result:
                 self.create_naive_bayes_plot(result)
-                self.display_supervised_results(result, params, le.classes_)
 
         elif algorithm_name == "C4.5":
-            result = self.apply_c45_algorithm(
-                X_numeric, y_encoded, params, numeric_features.columns)
             if result:
                 self.create_decision_tree_plot(
                     result, numeric_features.columns, le.classes_)
-                self.display_supervised_results(result, params, le.classes_)
+
+        # Right functions
+        if result:
+            self.display_supervised_results(result, params, le.classes_)
 
         # Enable next step
         self.next_btn.config(state=tk.NORMAL, bg="#24367E")
 
-    def apply_knn_algorithm(self, X, y, params):
-        """Apply KNN algorithm"""
-        try:
-            train_ratio = params.get('training perc', 0.8)
-            n_neighbors = params.get('n_neighbors', 5)
-
-            # Split data
-            X_train, X_test, y_train, y_test = train_test_split(
-                X, y, train_size=train_ratio, random_state=42
-            )
-
-            # Apply KNN
-            knn = KNeighborsClassifier(n_neighbors=n_neighbors)
-            knn.fit(X_train, y_train)
-            y_pred = knn.predict(X_test)
-
-            # Calculate accuracy for different K values
-            k_range = range(1, 11)
-            accuracies = []
-            for k in k_range:
-                knn_temp = KNeighborsClassifier(n_neighbors=k)
-                knn_temp.fit(X_train, y_train)
-                y_pred_temp = knn_temp.predict(X_test)
-                accuracies.append(accuracy_score(y_test, y_pred_temp))
-
-            return {
-                'algorithm': 'KNN',
-                'model': knn,
-                'X_train': X_train,
-                'X_test': X_test,
-                'y_train': y_train,
-                'y_test': y_test,
-                'y_pred': y_pred,
-                'n_neighbors': n_neighbors,
-                'train_ratio': train_ratio,
-                'accuracy': accuracy_score(y_test, y_pred),
-                'k_accuracies': list(zip(k_range, accuracies)),
-                'confusion_matrix': confusion_matrix(y_test, y_pred),
-                'classification_report': classification_report(y_test, y_pred, output_dict=True)
-            }
-        except Exception as e:
-            self.show_error(f"Error in KNN: {str(e)}")
-            return None
-
-    def apply_naive_bayes_algorithm(self, X, y, params):
-        """Apply Naive Bayes algorithm"""
-        try:
-            train_ratio = params.get('training perc', 0.8)
-
-            # Split data
-            X_train, X_test, y_train, y_test = train_test_split(
-                X, y, train_size=train_ratio, random_state=42
-            )
-
-            # Apply Naive Bayes
-            nb = GaussianNB()
-            nb.fit(X_train, y_train)
-            y_pred = nb.predict(X_test)
-
-            return {
-                'algorithm': 'Naive Bayes',
-                'model': nb,
-                'X_train': X_train,
-                'X_test': X_test,
-                'y_train': y_train,
-                'y_test': y_test,
-                'y_pred': y_pred,
-                'train_ratio': train_ratio,
-                'accuracy': accuracy_score(y_test, y_pred),
-                'confusion_matrix': confusion_matrix(y_test, y_pred),
-                'classification_report': classification_report(y_test, y_pred, output_dict=True)
-            }
-        except Exception as e:
-            self.show_error(f"Error in Naive Bayes: {str(e)}")
-            return None
-
-    def apply_c45_algorithm(self, X, y, params, feature_names):
-        """Apply C4.5 (Decision Tree) algorithm"""
-        try:
-            train_ratio = params.get('training perc', 0.8)
-
-            # Split data
-            X_train, X_test, y_train, y_test = train_test_split(
-                X, y, train_size=train_ratio, random_state=42
-            )
-
-            # Apply Decision Tree (C4.5 approximation)
-            dt = DecisionTreeClassifier(
-                criterion='entropy',  # C4.5 uses entropy
-                max_depth=6,
-                min_samples_split=2,
-                random_state=42
-            )
-            dt.fit(X_train, y_train)
-            y_pred = dt.predict(X_test)
-
-            return {
-                'algorithm': 'C4.5',
-                'model': dt,
-                'X_train': X_train,
-                'X_test': X_test,
-                'y_train': y_train,
-                'y_test': y_test,
-                'y_pred': y_pred,
-                'train_ratio': train_ratio,
-                'accuracy': accuracy_score(y_test, y_pred),
-                'confusion_matrix': confusion_matrix(y_test, y_pred),
-                'classification_report': classification_report(y_test, y_pred, output_dict=True),
-                'feature_names': feature_names
-            }
-        except Exception as e:
-            self.show_error(f"Error in C4.5: {str(e)}")
-            return None
+    # supervised algorithims plot functions
 
     def create_knn_plot(self, result):
         # Clear previous plots
@@ -670,7 +513,6 @@ class VisualizationFrame(tk.Frame):
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
     def create_naive_bayes_plot(self, result):
-        """Create performance metrics plot for Naive Bayes"""
         # Clear previous plots
         for widget in self.plot_frame.winfo_children():
             widget.destroy()
@@ -708,7 +550,6 @@ class VisualizationFrame(tk.Frame):
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
     def create_decision_tree_plot(self, result, feature_names, class_names):
-        """Create decision tree visualization for C4.5"""
         # Clear previous plots
         for widget in self.plot_frame.winfo_children():
             widget.destroy()
@@ -734,8 +575,9 @@ class VisualizationFrame(tk.Frame):
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
+    # supervised algorithms global results
+
     def display_supervised_results(self, result, params, class_names):
-        """Display results for supervised algorithms"""
         self.results_text.delete(1.0, tk.END)
 
         algorithm = result['algorithm']
@@ -791,226 +633,31 @@ class VisualizationFrame(tk.Frame):
 
     def apply_unsupervised_algorithm(self, algorithm_name, algorithm_type, params):
 
-        dataset = self.controller.dataset_loader.data
-        if dataset is None:
-            self.show_error("No dataset loaded")
-            print("No dataset loaded")
+        result = self.controller.apply_unsupervised_algorithm(
+            algorithm_name, algorithm_type, params)
 
-        if len(dataset.columns) > 1:
-            # Use first few numeric columns
-            numeric_cols = dataset.select_dtypes(include=[np.number]).columns
-            if len(numeric_cols) >= 2:
-                selected_columns = numeric_cols[:2]
-                # Take first 2 numeric columns
-                data = dataset[selected_columns].values
-            else:
-                self.show_error("Not enough numeric columns for visualization")
-                return
-        else:
-            self.show_error("Dataset has insufficient columns")
-            return
+        if result:
 
-        # Apply algorithm based on type
-        if algorithm_type == "Partitioning":
-            result = self.apply_partitioning_algorithm(
-                algorithm_name, data, params)
-            if result:
+            # Apply algorithm based on type
+            if algorithm_type == "Partitioning":
                 self.create_scatter_plot(
-                    data, result['labels'], algorithm_name, result.get('centers'), selected_columns)
+                    result['data'], result['labels'], algorithm_name, result.get('centers'), result['selected_columns'])
                 self.display_partitioning_results(result, params)
 
-        elif algorithm_type == "Hierarchical":
-            result = self.apply_hierarchical_algorithm(
-                algorithm_name, data, params)
-            if result:
+            elif algorithm_type == "Hierarchical":
                 self.create_dendrogram_plot(
                     result['linkage_matrix'], algorithm_name, params.get('n_clusters', 3))
                 self.display_hierarchical_results(result, params)
 
-        elif algorithm_type == "Density-based":
-            result = self.apply_density_algorithm(algorithm_name, data, params)
-            if result:
+            elif algorithm_type == "Density-based":
                 self.create_scatter_plot(
-                    data, result['labels'], algorithm_name)
+                    result['data'], result['labels'], algorithm_name)
                 self.display_density_results(result, params)
 
-        # Enable next step
-        self.next_btn.config(state=tk.NORMAL, bg="#24367E")
+            # Enable next step
+            self.next_btn.config(state=tk.NORMAL, bg="#24367E")
 
-    def kmedoids_clustering(self, data, n_clusters, distance_metric, max_iter):
-        try:
-            np.random.seed(42)
-
-            n_samples = data.shape[0]
-
-            metric_mapping = {
-                'euclidean': 'euclidean',
-                'manhattan': 'cityblock'
-            }
-
-            metric = metric_mapping.get(distance_metric, 'euclidean')
-
-            medoid_indices = np.random.choice(
-                n_samples, n_clusters, replace=False)
-            medoids = data[medoid_indices]
-
-            for iteration in range(max_iter):
-                distances = cdist(data, medoids, metric=metric)
-                labels = np.argmin(distances, axis=1)
-
-                new_medoid_indices = []
-                cost_improved = False
-
-                for cluster_id in range(n_clusters):
-                    cluster_points = data[labels == cluster_id]
-                    cluster_indices = np.where(labels == cluster_id)[0]
-
-                    if len(cluster_points) == 0:
-                        new_medoid_indices.append(medoid_indices[cluster_id])
-                        continue
-
-                    current_medoid_idx = medoid_indices[cluster_id]
-                    current_cost = np.sum(
-                        cdist([data[current_medoid_idx]], cluster_points, metric=metric))
-
-                    best_medoid_idx = current_medoid_idx
-                    best_cost = current_cost
-
-                    for point_idx in cluster_indices:
-                        cost = np.sum(
-                            cdist([data[point_idx]], cluster_points, metric=metric))
-                        if cost < best_cost:
-                            best_cost = cost
-                            best_medoid_idx = point_idx
-                            cost_improved = True
-
-                    new_medoid_indices.append(best_medoid_idx)
-
-                medoid_indices = np.array(new_medoid_indices)
-                new_medoids = data[medoid_indices]
-
-                if not cost_improved or np.array_equal(medoids, new_medoids):
-                    break
-
-                medoids = new_medoids
-
-            distances = cdist(data, medoids, metric=metric)
-            final_labels = np.argmin(distances, axis=1)
-
-            total_inertia = 0
-            for i, label in enumerate(final_labels):
-                total_inertia += distances[i, label]
-
-            return {
-                'labels': final_labels,
-                'medoids': medoids,
-                'medoid_indices': medoid_indices,
-                'n_clusters': n_clusters,
-                'algorithm': 'K-Medoids',
-                'distance_metric': distance_metric,
-                'max_iter': max_iter,
-                'n_points': len(data),
-                'inertia': total_inertia,
-                'iterations_run': iteration + 1
-            }
-
-        except Exception as e:
-            return {'error': str(e)}
-
-    def apply_partitioning_algorithm(self, algorithm_name, data, params):
-        """K-Means, K-Medoids"""
-        try:
-            n_clusters = params.get('n_clusters', 3)
-            max_iter = params.get('max_iter', 300)
-            distance_metric = params.get('distance_metric', 'euclidean')
-
-            if algorithm_name == "K-Means":
-                kmeans = KMeans(n_clusters=n_clusters,
-                                max_iter=max_iter,
-                                random_state=42,
-                                n_init=10)
-                labels = kmeans.fit_predict(data)
-                return {
-                    'labels': labels,
-                    'centers': kmeans.cluster_centers_,
-                    'algorithm': algorithm_name,
-                    'n_clusters': n_clusters,
-                    'inertia': kmeans.inertia_
-                }
-
-            elif algorithm_name == "K-Medoids":
-                result = self.kmedoids_clustering(
-                    data, n_clusters, distance_metric, max_iter)
-
-                # Vérifier s'il y a une erreur
-                if 'error' in result:
-                    self.show_error(f"K-Medoids error: {result['error']}")
-                    return None
-
-                return {
-                    'labels': result['labels'],
-                    'centers': result['medoids'],  # Medoids comme centres
-                    'algorithm': algorithm_name,
-                    'n_clusters': n_clusters,
-                    'inertia': result['inertia'],
-                    'medoids': result['medoids'],
-                    'medoid_indices': result['medoid_indices'],
-                    'iterations_run': result['iterations_run']
-                }
-
-        except Exception as e:
-            self.show_error(f"Error in {algorithm_name}: {str(e)}")
-            print(f"Full error details: {e}")
-            return None
-
-    def apply_hierarchical_algorithm(self, algorithm_name, data, params):
-        """AGNES, DIANA"""
-        try:
-            distance_metric = params.get('distance_metric', 'euclidean')
-            linkage_method = params.get('linkage', 'single')
-
-            # Calculate distances and linkage
-            if distance_metric == 'manhattan':
-                distances = pdist(data, metric='cityblock')
-            else:
-                distances = pdist(data, metric='euclidean')
-
-            linkage_matrix = linkage(distances, method=linkage_method)
-
-            return {
-                'linkage_matrix': linkage_matrix,
-                'algorithm': algorithm_name,
-                'distance_metric': distance_metric,
-                'linkage_method': linkage_method
-            }
-        except Exception as e:
-            self.show_error(f"Error in {algorithm_name}: {str(e)}")
-            return None
-
-    def apply_density_algorithm(self, algorithm_name, data, params):
-        """DBSCAN"""
-        try:
-            eps = params.get('eps', 0.5)
-            min_samples = params.get('min_samples', 5)
-
-            if algorithm_name == "DBSCAN":
-                dbscan = DBSCAN(eps=eps, min_samples=min_samples)
-                labels = dbscan.fit_predict(data)
-
-                n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
-                n_noise = list(labels).count(-1)
-
-                return {
-                    'labels': labels,
-                    'algorithm': algorithm_name,
-                    'n_clusters': n_clusters,
-                    'n_noise': n_noise,
-                    'eps': eps,
-                    'min_samples': min_samples
-                }
-        except Exception as e:
-            self.show_error(f"Error in {algorithm_name}: {str(e)}")
-            return None
+    # unsupervised algorithms plot functions
 
     def create_scatter_plot(self, data, labels, algorithm_name, centers=None, column_names=None):
         # Clear previous plots
@@ -1093,6 +740,8 @@ class VisualizationFrame(tk.Frame):
         canvas.draw()
         canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
 
+    # unsupervised algorithms global results
+
     def display_partitioning_results(self, result, params):
         """Display results for partitioning algorithms"""
         self.results_text.insert(tk.END, f"{result['algorithm']} Results\n")
@@ -1149,12 +798,13 @@ class VisualizationFrame(tk.Frame):
         self.results_text.insert(
             tk.END, "\nRed line indicates cluster cut level\n")
 
-    def display_density_results(self, result, params):
+    def display_density_results(self, result, params, algorithm_type):
         self.results_text.insert(tk.END, f"{result['algorithm']} Results\n")
         self.results_text.insert(tk.END, "=" * 20 + "\n\n")
         self.results_text.insert(tk.END, f"Algorithm: {result['algorithm']}\n")
         self.results_text.insert(
             tk.END, f"Clusters found: {result['n_clusters']}\n")
+
         self.results_text.insert(
             tk.END, f"Noise points: {result['n_noise']}\n")
         self.results_text.insert(tk.END, f"Eps: {result['eps']}\n")
@@ -1175,47 +825,16 @@ class VisualizationFrame(tk.Frame):
                     tk.END, f"Cluster {label}: {count} points\n")
 
         self.results_text.insert(tk.END, f"\nTotal points: {len(labels)}\n\n")
+
         self.results_text.insert(
             tk.END, "Note: Black 'x' marks are noise points\n")
 
-    def create_supervised_plot(self, algorithm_name):
-        """Create visualization for supervised algorithms"""
-        # Clear previous plots
-        for widget in self.plot_frame.winfo_children():
-            widget.destroy()
-
-        fig, ax = plt.subplots(figsize=(4, 3))
-
-        # Placeholder supervised learning plot
-        metrics = ['Accuracy', 'Precision', 'Recall', 'F1-Score']
-        values = [0.857, 0.832, 0.871, 0.851]
-
-        bars = ax.bar(metrics, values, color=[
-                      '#1f77b4', '#ff7f0e', '#2ca02c', '#d62728'])
-        ax.set_ylim(0, 1)
-        ax.set_ylabel('Score')
-        ax.set_title(f'{algorithm_name} Performance Metrics')
-
-        # Add value labels on bars
-        for bar, value in zip(bars, values):
-            ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.01,
-                    f'{value:.3f}', ha='center', va='bottom')
-
-        ax.grid(True, alpha=0.3, axis='y')
-        plt.tight_layout()
-
-        canvas = FigureCanvasTkAgg(fig, self.plot_frame)
-        canvas.draw()
-        canvas.get_tk_widget().pack(fill=tk.BOTH, expand=True)
+    # errors & incrementation
 
     def show_error(self, message):
         """Show error message in results area"""
         self.results_text.delete(1.0, tk.END)
         self.results_text.insert(tk.END, f"ERROR: {message}\n\n")
-
-    def on_previous_step(self):
-        """Handle previous step button click"""
-        self.event_generate("<<PreviousStep>>")
 
     def on_next_step(self):
         """Handle next step button click"""
@@ -1223,16 +842,3 @@ class VisualizationFrame(tk.Frame):
             self.event_generate("<<NextStep>>")
         except Exception as e:
             print(f"Error generating event: {e}")
-
-    def reset_frame(self):
-        self.results_text.delete(1.0, tk.END)
-        self.results_text.insert(
-            tk.END, "Results will appear here after applying the algorithm...\n\n")
-
-        for widget in self.plot_frame.winfo_children():
-            widget.destroy()
-
-        self.next_btn.config(state=tk.DISABLED, bg="#374451")
-
-        # Recreate parameter inputs
-        self.create_parameter_inputs()

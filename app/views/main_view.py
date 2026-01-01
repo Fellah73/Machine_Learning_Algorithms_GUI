@@ -105,8 +105,6 @@ class MainView(tk.Tk):
                 self.container, self.controller)
             self.frames['algorithms'].bind(
                 "<<NextStep>>", self.on_algorithms_next)
-            self.frames['algorithms'].bind(
-                "<<PreviousStep>>", self.on_algorithms_back)
             self.frames['algorithms'].place(
                 relx=0, rely=0, relwidth=1, relheight=1)
 
@@ -116,8 +114,6 @@ class MainView(tk.Tk):
                 self.container, self.controller)
             self.frames['visualization'].bind(
                 "<<NextStep>>", self.on_visualization_next)
-            self.frames['visualization'].bind(
-                "<<PreviousStep>>", self.on_visualization_back)
             self.frames['visualization'].place(
                 relx=0, rely=0, relwidth=1, relheight=1)
 
@@ -221,11 +217,6 @@ class MainView(tk.Tk):
             messagebox.showwarning(
                 "Warning", "Please select an algorithm first.")
 
-    def on_algorithms_back(self, event=None):
-        """Handler for back step from algorithms"""
-        self.controller.decrement_step()
-        self.show_current_step()
-
     def on_visualization_next(self, event=None):
      """Handler for next step from visualization"""    
      try:
@@ -234,10 +225,5 @@ class MainView(tk.Tk):
      except Exception as e:
         print(f"Error in visualization next: {e}")  # Debug
   
-    def on_visualization_back(self, event=None):
-        """Handler for back step from visualization"""
-        self.controller.decrement_step()
-        self.show_current_step()
-
     def on_comparison_next(self, event=None):
         messagebox.showinfo("Info", "Comparison completed successfully!")

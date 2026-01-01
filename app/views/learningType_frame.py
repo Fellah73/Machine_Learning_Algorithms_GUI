@@ -119,21 +119,6 @@ class LearningTypeFrame(ttk.Frame):
         buttons_frame = tk.Frame(main_frame, bg="#f0f0f0")
         buttons_frame.pack(pady=15, fill=tk.X)
 
-        # Back button
-        self.back_button = tk.Button(
-            buttons_frame,
-            text="Back",
-            font=("Arial", 13, "bold"),
-            bg="#6c757d",
-            fg="white",
-            width=15,
-            height=2,
-            relief="flat",
-            cursor="hand2",
-            command=self.on_back_step
-        )
-        self.back_button.pack(side=tk.LEFT, padx=10)
-
         # Next step button (plus visible)
         self.next_button = tk.Button(
             buttons_frame,
@@ -150,8 +135,11 @@ class LearningTypeFrame(ttk.Frame):
         )
         self.next_button.pack(side=tk.RIGHT, padx=10)
 
+     # Selected learning type handler
+
+    # Selected learning type handler
+
     def on_selection_change(self):
-        """Handle learning type selection change"""
         selected_type = self.learning_type_var.get()
 
         if selected_type:
@@ -174,25 +162,10 @@ class LearningTypeFrame(ttk.Frame):
                 padx=5
             )
 
-            # Update controller state
+            # update controller state
             self.controller.set_learning_type(selected_type)
 
     def on_next_step(self):
-        """Handle next step button click"""
         selected_type = self.learning_type_var.get()
         if selected_type:
             self.event_generate("<<NextStep>>")
-
-    def on_back_step(self):
-        """Handle back step button click"""
-        self.event_generate("<<PreviousStep>>")
-
-    def reset_selection(self):
-        """Reset the learning type selection"""
-        self.learning_type_var.set("")
-        self.next_button.config(state=tk.DISABLED, bg="#374451")
-        self.status_label.config(
-            text="Please select a learning type to continue",
-            fg="#666666",
-            font=("Arial", 10, "italic")
-        )

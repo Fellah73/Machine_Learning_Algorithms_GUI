@@ -67,7 +67,6 @@ class UploadDataSetFrame(ttk.Frame):
         self.nextStepUpload.config(state=tk.DISABLED, bg="#a0a0a0")
 
     def on_upload_click(self):
-        """Handler for upload button click"""
         result = self.controller.handle_file_upload()
 
         if result and result['success']:
