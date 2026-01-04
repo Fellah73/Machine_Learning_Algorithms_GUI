@@ -10,6 +10,8 @@ from app.models.supervised_algorithms import SupervisedAlgorithms
 from app.models.unsupervisd_algorithms import UnsupervisedAlgorithms
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 
 
 class AppController:
@@ -27,6 +29,7 @@ class AppController:
         self.selected_algorithm = None
         self.selected_algorithm_family = None
         self.algorithm_parameters = None
+        self.test_sizes = [0.1, 0.2, 0.3]  # 10%, 20%, 30%
 
     def set_view(self, view):
         self.view = view
@@ -330,3 +333,91 @@ class AppController:
 
     def set_algorithm_parameters(self, parameters):
         self.algorithm_parameters = parameters
+
+    # Supervised Comparison Function
+
+    def get_parameter_values(self):
+        """Get algorithm parameters"""
+        user_params = self.algorithm_parameters or {}
+
+        return {
+            'n_neighbors': user_params.get('n_neighbors', 5),
+            'max_depth': user_params.get('max_depth', None),
+            'criterion': user_params.get('criterion', 'gini'),
+            'var_smoothing': user_params.get('var_smoothing', 1e-9)
+        }
+
+    def prepare_data_for_classification(self, test_size=0.3):
+        """Prepare data for supervised classification with specified test size"""
+        dataset = self.dataset_loader.data
+        if dataset is None:
+            return None, None, None, None, "No dataset loaded"
+
+        # Separate features and target
+        target_column = dataset.columns[-1]
+        features = dataset.drop(target_column, axis=1)
+        target = dataset[target_column]
+
+        numeric_features = features.select_dtypes(include=[np.number])
+        if len(numeric_features.columns) == 0:
+            return None, None, None, None, "No numeric features found"
+
+        label_encoder = LabelEncoder()
+        if not np.issubdtype(target.dtype, np.number):
+            target_encoded = label_encoder.fit_transform(target)
+        else:
+            target_encoded = target.values
+
+        X_train, X_test, y_train, y_test = train_test_split(
+            numeric_features.values, target_encoded, test_size=test_size, random_state=42
+        )
+
+        scaler = StandardScaler()
+        X_train_scaled = scaler.fit_transform(X_train)
+        X_test_scaled = scaler.transform(X_test)
+
+        return X_train_scaled, X_test_scaled, y_train, y_test, None
+
+    def calculate_performance_metrics(self):
+        self.comparison_results = {}
+        params = self.get_parameter_values()
+
+        n_neighbors = params['n_neighbors']
+        max_depth = params['max_depth']
+        criterion = params['criterion']
+        var_smoothing = params['var_smoothing']
+
+        # Test each algorithm with each test size
+        for test_size in self.test_sizes:
+            X_train, X_test, y_train, y_test, error = self.prepare_data_for_classification(
+                test_size)
+            if error:
+                print(
+                    f"Data preparation error for test_size {test_size}: {error}")
+                continue
+
+            test_size_key = f"{int(test_size * 100)}%"
+            self.comparison_results[test_size_key] = {}
+
+            # Apply each algorithm
+            algorithms = {
+                'KNN': lambda: self.supervised_algorithms.knn_classification_metrics(X_train, X_test, y_train, y_test, n_neighbors),
+                'C4.5': lambda: self.supervised_algorithms.c45_classification_metrics(X_train, X_test, y_train, y_test, max_depth, criterion),
+                'Naive Bayes': lambda: self.supervised_algorithms.naive_bayes_classification(X_train, X_test, y_train, y_test, var_smoothing)
+            }
+
+            for algo_name, algo_func in algorithms.items():
+                try:
+                    result = algo_func()
+                    if 'error' not in result:
+                        self.comparison_results[test_size_key][algo_name] = result
+                    else:
+                        self.comparison_results[test_size_key][algo_name] = None
+                        print(
+                            f"Error in {algo_name} with test_size {test_size_key}: {result['error']}")
+                except Exception as e:
+                    self.comparison_results[test_size_key][algo_name] = None
+                    print(
+                        f"Exception in {algo_name} with test_size {test_size_key}: {str(e)}")
+
+        return self.comparison_results

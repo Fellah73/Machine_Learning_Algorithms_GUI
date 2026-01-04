@@ -130,8 +130,6 @@ class MainView(tk.Tk):
         if frame_name == 'sup_comparison' and 'sup_comparison' not in self.frames:
             self.frames['sup_comparison'] = SupervisedComparisonFrame(
                 self.container, self.controller)
-            self.frames['sup_comparison'].bind(
-                "<<PreviousStep>>", self.on_previous_step)
             self.frames['sup_comparison'].place(
                 relx=0, rely=0, relwidth=1, relheight=1)
 
