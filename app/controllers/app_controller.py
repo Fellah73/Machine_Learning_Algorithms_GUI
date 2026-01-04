@@ -7,7 +7,7 @@ from app.models.data_preprocessing import DataPreprocessor
 from app.config.constants import step_mapping, algorithms
 from app.models.clustering_metrics import ClusteringMetrics
 from app.models.supervised_algorithms import SupervisedAlgorithms
-from app.models.unsupervisd_algorithms import UnsupervisedAlgorithms
+from app.models.unsupervised_algorithms import UnsupervisedAlgorithms
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
 from sklearn.model_selection import train_test_split
@@ -42,11 +42,6 @@ class AppController:
 
     def increment_step(self):
         self.app_state.increment_step()
-        if self.view:
-            self.view.show_current_step()
-
-    def decrement_step(self):
-        self.app_state.decrement_step()
         if self.view:
             self.view.show_current_step()
 
@@ -337,8 +332,7 @@ class AppController:
 
     # Supervised Comparison Function
 
-    def get_parameter_values(self):
-        """Get algorithm parameters"""
+    def get_parameter_values_supervised(self):
         user_params = self.algorithm_parameters or {}
 
         return {
@@ -349,7 +343,6 @@ class AppController:
         }
 
     def prepare_data_for_classification(self, test_size=0.3):
-        """Prepare data for supervised classification with specified test size"""
         dataset = self.dataset_loader.data
         if dataset is None:
             return None, None, None, None, "No dataset loaded"
@@ -381,7 +374,7 @@ class AppController:
 
     def calculate_performance_metrics(self):
         self.comparison_results = {}
-        params = self.get_parameter_values()
+        params = self.get_parameter_values_supervised()
 
         n_neighbors = params['n_neighbors']
         max_depth = params['max_depth']
@@ -443,7 +436,7 @@ class AppController:
         normalized_data = scaler.fit_transform(data)
         return normalized_data, None
 
-    def get_parameter_values(self):
+    def get_parameter_values_unsupervised(self):
         optimal_k = self.get_optimal_k()
 
         user_params = self.algorithm_parameters or {}
@@ -467,7 +460,7 @@ class AppController:
         comparison_algorithms = ['K-Means',
                                  'K-Medoids', 'AGNES', 'DIANA', 'DBSCAN']
         comparison_results = {}
-        params = self.get_parameter_values()
+        params = self.get_parameter_values_unsupervised()
 
         k_clusters = params['n_clusters']
         distance_metric = params['distance_metric']

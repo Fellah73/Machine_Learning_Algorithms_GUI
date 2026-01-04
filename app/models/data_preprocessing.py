@@ -1,6 +1,5 @@
 import pandas as pd
-import numpy as np
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, Optional, List
 from sklearn.preprocessing import StandardScaler, LabelEncoder
 
 class DataPreprocessor:

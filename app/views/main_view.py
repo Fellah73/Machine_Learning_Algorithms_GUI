@@ -52,7 +52,6 @@ class MainView(tk.Tk):
         self.show_current_step()
 
     def _create_frames(self):
-        """Create all application frames"""
         # Upload frame
         self.frames['upload'] = UploadDataSetFrame(
             self.container, self.controller)
@@ -69,17 +68,13 @@ class MainView(tk.Tk):
             self.container, self.controller)
         self.frames['learning_type'].bind(
             "<<NextStep>>", self.on_learning_type_next)
-        self.frames['learning_type'].bind(
-            "<<PreviousStep>>", self.on_learning_type_back)
-
+        
         # Clustering Metrics frame - NOUVEAU
         self.frames['clustering_metrics'] = ClusteringMetricsFrame(
             self.container, self.controller)
         self.frames['clustering_metrics'].bind(
             "<<NextStep>>", self.on_clustering_metrics_next)
-        self.frames['clustering_metrics'].bind(
-            "<<PreviousStep>>", self.on_clustering_metrics_back)
-
+        
         # Place all frames in the same location
         for frame in self.frames.values():
             frame.place(relx=0, rely=0, relwidth=1, relheight=1)
@@ -157,16 +152,6 @@ class MainView(tk.Tk):
                 "Please complete all preprocessing steps before proceeding."
             )
 
-    def on_learning_type_back(self, event=None):
-        """Handler pour retourner au preprocessing depuis learning type"""
-        self.controller.decrement_step()  # Retour à l'étape 1 (preprocessing)
-        self.show_current_step()
-
-    def on_previous_step(self, event=None):
-        """Handler for moving to previous step (général)"""
-        self.controller.decrement_step()
-        self.show_current_step()
-
     def update_navigation_for_learning_type(self, learning_type):
         """Update navigation when learning type is selected"""
         self.navbar.update_for_learning_type(learning_type)
@@ -195,11 +180,6 @@ class MainView(tk.Tk):
     def on_clustering_metrics_next(self, event=None):
         """Handler for next step from clustering metrics"""
         self.controller.increment_step()
-        self.show_current_step()
-
-    def on_clustering_metrics_back(self, event=None):
-        """Handler for back step from clustering metrics"""
-        self.controller.decrement_step()
         self.show_current_step()
 
     def on_algorithms_next(self, event=None):
