@@ -121,8 +121,6 @@ class MainView(tk.Tk):
         if frame_name == 'unsup_comparison' and 'unsup_comparison' not in self.frames:
             self.frames['unsup_comparison'] = UnsupervisedComparisonFrame(
                 self.container, self.controller)
-            self.frames['unsup_comparison'].bind(
-                "<<PreviousStep>>", self.on_previous_step)
             self.frames['unsup_comparison'].place(
                 relx=0, rely=0, relwidth=1, relheight=1)
             

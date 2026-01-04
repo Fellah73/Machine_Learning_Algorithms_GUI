@@ -2,7 +2,8 @@ from scipy.spatial.distance import cdist
 import numpy as np
 from sklearn.cluster import KMeans, DBSCAN
 from scipy.spatial.distance import pdist
-from scipy.cluster.hierarchy import linkage
+from scipy.cluster.hierarchy import linkage , fcluster
+
 
 
 class UnsupervisedAlgorithms:
@@ -190,3 +191,177 @@ class UnsupervisedAlgorithms:
         except Exception as e:
             print(f"Error in {algorithm_name}: {str(e)}")
             return None
+
+        # Algorithm implementations
+    
+    
+    # Unsupervised Algorithms Comparison Methods
+    def kmeans_clustering(self, data, n_clusters, distance_metric, max_iter):
+        try:
+            kmeans = KMeans(n_clusters=n_clusters, max_iter=max_iter,
+                            random_state=42, n_init=10)
+            labels = kmeans.fit_predict(data)
+
+            return {
+                'labels': labels,
+                'centers': kmeans.cluster_centers_,
+                'n_clusters': n_clusters,
+                'algorithm': 'K-Means',
+                'distance_metric': distance_metric,
+                'max_iter': max_iter,
+                'n_points': len(data),
+                'inertia': kmeans.inertia_
+            }
+        except Exception as e:
+            return {'error': str(e)}
+
+    def kmedoids_clustering(self, data, n_clusters, distance_metric, max_iter):
+        try:
+            np.random.seed(42)
+            n_samples = data.shape[0]
+
+            metric_mapping = {
+                'euclidean': 'euclidean',
+                'manhattan': 'cityblock'
+            }
+
+            metric = metric_mapping.get(distance_metric, 'euclidean')
+            medoid_indices = np.random.choice(
+                n_samples, n_clusters, replace=False)
+            medoids = data[medoid_indices]
+
+            for iteration in range(max_iter):
+                distances = cdist(data, medoids, metric=metric)
+                labels = np.argmin(distances, axis=1)
+
+                new_medoid_indices = []
+                cost_improved = False
+
+                for cluster_id in range(n_clusters):
+                    cluster_points = data[labels == cluster_id]
+                    cluster_indices = np.where(labels == cluster_id)[0]
+
+                    if len(cluster_points) == 0:
+                        new_medoid_indices.append(medoid_indices[cluster_id])
+                        continue
+
+                    current_medoid_idx = medoid_indices[cluster_id]
+                    current_cost = np.sum(
+                        cdist([data[current_medoid_idx]], cluster_points, metric=metric))
+
+                    best_medoid_idx = current_medoid_idx
+                    best_cost = current_cost
+
+                    for point_idx in cluster_indices:
+                        cost = np.sum(
+                            cdist([data[point_idx]], cluster_points, metric=metric))
+                        if cost < best_cost:
+                            best_cost = cost
+                            best_medoid_idx = point_idx
+                            cost_improved = True
+
+                    new_medoid_indices.append(best_medoid_idx)
+
+                medoid_indices = np.array(new_medoid_indices)
+                new_medoids = data[medoid_indices]
+
+                if not cost_improved or np.array_equal(medoids, new_medoids):
+                    break
+
+                medoids = new_medoids
+
+            distances = cdist(data, medoids, metric=metric)
+            final_labels = np.argmin(distances, axis=1)
+
+            total_inertia = 0
+            for i, label in enumerate(final_labels):
+                total_inertia += distances[i, label]
+
+            return {
+                'labels': final_labels,
+                'medoids': medoids,
+                'medoid_indices': medoid_indices,
+                'n_clusters': n_clusters,
+                'algorithm': 'K-Medoids',
+                'distance_metric': distance_metric,
+                'max_iter': max_iter,
+                'n_points': len(data),
+                'inertia': total_inertia,
+                'iterations_run': iteration + 1
+            }
+        except Exception as e:
+            return {'error': str(e)}
+
+    def agnes_clustering(self, data, n_clusters, linkage_method, distance_metric):
+        try:
+            distance_mapping = {
+                'euclidean': 'euclidean',
+                'manhattan': 'cityblock',
+            }
+
+            scipy_distance = distance_mapping.get(distance_metric, 'euclidean')
+            distances = pdist(data, metric=scipy_distance)
+            linkage_matrix = linkage(distances, method=linkage_method)
+            labels = fcluster(linkage_matrix, n_clusters, criterion='maxclust')
+
+            return {
+                'labels': labels - 1,
+                'linkage_matrix': linkage_matrix,
+                'n_clusters': n_clusters,
+                'algorithm': 'AGNES',
+                'linkage_method': linkage_method,
+                'distance_metric': distance_metric,
+                'n_points': len(data)
+            }
+        except Exception as e:
+            return {'error': str(e)}
+
+    def diana_clustering(self, data, n_clusters, distance_metric):
+        try:
+            distance_mapping = {
+                'euclidean': 'euclidean',
+                'manhattan': 'cityblock',
+            }
+
+            scipy_distance = distance_mapping.get(distance_metric, 'euclidean')
+            distances = pdist(data, metric=scipy_distance)
+            linkage_matrix = linkage(distances, method='complete')
+            labels = fcluster(linkage_matrix, n_clusters, criterion='maxclust')
+
+            return {
+                'labels': labels - 1,
+                'linkage_matrix': linkage_matrix,
+                'n_clusters': n_clusters,
+                'algorithm': 'DIANA',
+                'distance_metric': distance_metric,
+                'n_points': len(data)
+            }
+        except Exception as e:
+            return {'error': str(e)}
+
+    def dbscan_clustering(self, data, eps, min_samples):
+        try:
+            dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+            labels = dbscan.fit_predict(data)
+
+            n_clusters = len(set(labels)) - (1 if -1 in labels else 0)
+            n_noise = list(labels).count(-1)
+            n_core = len(dbscan.core_sample_indices_)
+            n_border = len(data) - n_core - n_noise
+
+            return {
+                'labels': labels,
+                'core_sample_indices': dbscan.core_sample_indices_,
+                'n_clusters': n_clusters,
+                'algorithm': 'DBSCAN',
+                'eps': eps,
+                'min_samples': min_samples,
+                'n_points': len(data),
+                'n_core_points': n_core,
+                'n_border_points': n_border,
+                'n_noise_points': n_noise
+            }
+        except Exception as e:
+            return {'error': str(e)}
+
+ 

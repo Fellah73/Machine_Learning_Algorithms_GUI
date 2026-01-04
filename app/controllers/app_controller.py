@@ -12,6 +12,7 @@ from sklearn.preprocessing import LabelEncoder
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler, LabelEncoder
+from sklearn.metrics import silhouette_score
 
 
 class AppController:
@@ -421,3 +422,92 @@ class AppController:
                         f"Exception in {algo_name} with test_size {test_size_key}: {str(e)}")
 
         return self.comparison_results
+
+    # Unsupervised Comparison Function
+
+    def prepare_data_for_clustering(self):
+        dataset = self.dataset_loader.data
+        if dataset is None:
+            return None, "No dataset loaded"
+
+        last_column = dataset.columns[-1]
+        features = dataset.drop(last_column, axis=1)
+        numeric_features = features.select_dtypes(include=[np.number])
+
+        if len(numeric_features.columns) == 0:
+            return None, "No numeric features found"
+
+        # AJOUT DE LA NORMALISATION
+        data = numeric_features.values
+        scaler = StandardScaler()
+        normalized_data = scaler.fit_transform(data)
+        return normalized_data, None
+
+    def get_parameter_values(self):
+        optimal_k = self.get_optimal_k()
+
+        user_params = self.algorithm_parameters or {}
+
+        return {
+            'n_clusters': user_params.get('n_clusters', optimal_k),
+            'distance_metric': user_params.get('distance_metric', 'euclidean'),
+            'linkage': user_params.get('linkage_method', 'single'),
+            'max_iter': user_params.get('max_iter', 300),
+            'eps': user_params.get('eps', 1.3),
+            'min_samples': user_params.get('min_samples', 2)
+        }
+
+       # Comparison logic
+
+    def calculate_silhouette_scores(self):
+        data, error = self.prepare_data_for_clustering()
+        if data is None or error:
+            return None
+
+        comparison_algorithms = ['K-Means',
+                                 'K-Medoids', 'AGNES', 'DIANA', 'DBSCAN']
+        comparison_results = {}
+        params = self.get_parameter_values()
+
+        k_clusters = params['n_clusters']
+        distance_metric = params['distance_metric']
+        linkage_method = params['linkage']
+        n_iterations = params['max_iter']
+        eps = params['eps']
+        min_samples = params['min_samples']
+
+        for algo in comparison_algorithms:
+            try:
+                if algo == 'K-Means':
+                    result = self.unsupervised_algorithms.kmeans_clustering(
+                        data, k_clusters, distance_metric, n_iterations)
+                elif algo == 'K-Medoids':
+                    result = self.unsupervised_algorithms.kmedoids_clustering(
+                        data, k_clusters, distance_metric, n_iterations)
+                elif algo == 'AGNES':
+                    result = self.unsupervised_algorithms.agnes_clustering(
+                        data, k_clusters, linkage_method, distance_metric)
+                elif algo == 'DIANA':
+                    result = self.unsupervised_algorithms.diana_clustering(
+                        data, k_clusters, distance_metric)
+                elif algo == 'DBSCAN':
+                    result = self.unsupervised_algorithms.dbscan_clustering(
+                        data, eps, min_samples)
+
+                if 'error' not in result:
+                    if algo == 'DBSCAN' and result['n_clusters'] < 2:
+                        comparison_results[algo] = {
+                            'silhouette': None, 'result': result}
+                    else:
+                        sil_score = silhouette_score(data, result['labels'])
+                        comparison_results[algo] = {
+                            'silhouette': sil_score, 'result': result}
+                else:
+                    comparison_results[algo] = {
+                        'silhouette': None, 'result': None}
+
+            except Exception as e:
+                comparison_results[algo] = {
+                    'silhouette': None, 'result': None}
+
+        return comparison_results

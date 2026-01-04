@@ -652,7 +652,7 @@ class VisualizationFrame(tk.Frame):
             elif algorithm_type == "Density-based":
                 self.create_scatter_plot(
                     result['data'], result['labels'], algorithm_name)
-                self.display_density_results(result, params)
+                self.display_density_results(result)
 
             # Enable next step
             self.next_btn.config(state=tk.NORMAL, bg="#24367E")
@@ -798,7 +798,7 @@ class VisualizationFrame(tk.Frame):
         self.results_text.insert(
             tk.END, "\nRed line indicates cluster cut level\n")
 
-    def display_density_results(self, result, params, algorithm_type):
+    def display_density_results(self, result):
         self.results_text.insert(tk.END, f"{result['algorithm']} Results\n")
         self.results_text.insert(tk.END, "=" * 20 + "\n\n")
         self.results_text.insert(tk.END, f"Algorithm: {result['algorithm']}\n")
